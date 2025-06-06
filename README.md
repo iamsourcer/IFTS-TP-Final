@@ -14,14 +14,14 @@
 - Jonathan Tarrico, Richard Lopez, Juan Carlos Chaile, Bruno Herrera, Erika Oropeza 
 
 ### Tema: 
-#### Sistema de gestión de obras urbanas del GCBA. Desarrollo con POO, importación de
-#### datasets desde un archivo csv, limpieza y normalización de datos, y persistencia de objetos con
-#### ORM Peewee en una base de datos SQLite.
-#### Se requiere desarrollar un software en Python para gestionar las obras urbanas de la Ciudad de
-#### Buenos Aires, tomando como origen de datos un dataset público del gobierno de la ciudad y
-#### haciendo uso de la librería “peewee”. Para el manejo y operaciones con el datasetse debe utilizar
-#### la librería “pandas”. Y para el manejo y operaciones con arrays pueden utilizar la librería
-#### “numpy”.
+Sistema de gestión de obras urbanas del GCBA. Desarrollo con POO, importación de
+datasets desde un archivo csv, limpieza y normalización de datos, y persistencia de objetos con
+ORM Peewee en una base de datos SQLite.
+Se requiere desarrollar un software en Python para gestionar las obras urbanas de la Ciudad de
+Buenos Aires, tomando como origen de datos un dataset público del gobierno de la ciudad y
+haciendo uso de la librería “peewee”. Para el manejo y operaciones con el datasetse debe utilizar
+la librería “pandas”. Y para el manejo y operaciones con arrays pueden utilizar la librería
+“numpy”.
 
 ### Requerimientos:
 1. En primer lugar, se debe crear una carpeta para el proyecto solución del TP, cuyo nombre
