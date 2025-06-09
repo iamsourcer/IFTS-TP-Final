@@ -37,6 +37,54 @@ print("Columnas utiles que quedan:")
 print(obras.columns)
 
 
+#--------------------------- Limpieza de renglones repetidos ------------------
+
+duplicados = obras[obras.duplicated(keep=False)]
+print(duplicados)
+
+# Eliminar filas duplicadas, conservando solo la primera aparición
+obras = obras.drop_duplicates(keep='first')
+
+
+#--------------------------- Limpieza de acentos  ----------------------------
+
+# Eliminar acentos en la columna "entorno"
+obras["entorno"] = obras["entorno"].astype(str).apply(unidecode)
+
+print("\nColumna ENTORNO sin acentos:")
+print(obras["entorno"].head(30))
+
+
+# Eliminar acentos en la columna "nombre"
+obras["nombre"] = obras["nombre"].astype(str).apply(unidecode)
+
+print("\nColumna NOMBRE sin acentos:")
+print(obras["nombre"].head(30))
+
+
+# Eliminar acentos en la columna "tipo"
+obras["tipo"] = obras["tipo"].astype(str).apply(unidecode)
+
+print("\nColumna TIPO sin acentos:")
+print(obras["tipo"].head(30))
+
+
+# Eliminar acentos en la columna "area_responsable"
+obras["area_responsable"] = obras["area_responsable"].astype(str).apply(unidecode)
+
+print("\nColumna AREA_RESPONSABLE sin acentos:")
+print(obras["area_responsable"].head(30))
+
+
+# Eliminar acentos en la columna "descripcion"
+obras["descripcion"] = obras["descripcion"].astype(str).apply(unidecode)
+
+print("\nColumna DESCRIPCION sin acentos:")
+print(obras["descripcion"].head(30))
+
+
+
+
 #--------------------------- Unificar formato para columna "MONTO_CONTRATO" ----------------------------
 
 print("\nEjemplos originales de monto_contrato:")
@@ -80,12 +128,12 @@ obras["fecha_inicio"] = obras["fecha_inicio"].replace(
 )
 
 obras["fecha_inicio"] = pd.to_datetime(obras["fecha_inicio"], errors="coerce")
-obras["fecha_inicio"] = obras["fecha_inicio"].dt.strftime("%Y-%m-%d")
+#obras["fecha_inicio"] = obras["fecha_inicio"].dt.strftime("%Y-%m-%d")
 #obras["fecha_inicio"] = obras["fecha_inicio"].fillna("0000-00-00")
-obras["fecha_inicio"] = obras["fecha_inicio"].replace(["", " "], pd.NA)
+#obras["fecha_inicio"] = obras["fecha_inicio"].replace(["", " "], pd.NA)
 
 print("\nfecha_inicio limpia y formateada:")
-print(obras["fecha_inicio"].head(650))
+print(obras["fecha_inicio"].head(20))
 
 
 #Columna "FECHA_FIN_INICIAL"
@@ -96,12 +144,12 @@ obras["fecha_fin_inicial"] = obras["fecha_fin_inicial"].replace(
 )
 
 obras["fecha_fin_inicial"] = pd.to_datetime(obras["fecha_fin_inicial"], errors="coerce")
-obras["fecha_fin_inicial"] = obras["fecha_fin_inicial"].dt.strftime("%Y-%m-%d")
+#obras["fecha_fin_inicial"] = obras["fecha_fin_inicial"].dt.strftime("%Y-%m-%d")
 #obras["fecha_fin_inicial"] = obras["fecha_fin_inicial"].fillna("0000-00-00")
-obras["fecha_fin_inicial"] = obras["fecha_fin_inicial"].replace(["", " "], pd.NA)
+#obras["fecha_fin_inicial"] = obras["fecha_fin_inicial"].replace(["", " "], pd.NA)
 
 print("\nfecha_fin_inicial limpia y formateada:")
-print(obras["fecha_fin_inicial"].head(650))
+print(obras["fecha_fin_inicial"].head(10))
 
 
 
@@ -141,6 +189,8 @@ print(obras["barrio"].head(30))
 obras["barrio"] = obras["barrio"].astype(str).str.strip().str.lower()
 obras["barrio"] = obras["barrio"].str.replace(r"\s+", " ", regex=True)
 obras["barrio"] = obras["barrio"].replace(["", " "], pd.NA)
+obras["barrio"] = obras["barrio"].astype(str).apply(unidecode)
+
 
 """ barrioVariantes = {                           #Esto reemplaza las variantes en la columna de barrios, pero hay que revisar uno a uno las diferentes opciones
     "villa urquiza": "villa urquiza",
@@ -166,6 +216,7 @@ print(obras["direccion"].head(30))
 obras["direccion"] = obras["direccion"].astype(str).str.strip().str.lower()
 obras["direccion"] = obras["direccion"].str.replace(r"\s+", " ", regex=True)
 obras["direccion"] = obras["direccion"].replace(["", " "], pd.NA)
+obras["direccion"] = obras["direccion"].astype(str).apply(unidecode)
 
 
 """ abreviaturasVariantes = {
@@ -198,7 +249,7 @@ print(obras["porcentaje_avance"].head(30))
 #obras["porcentaje_avance"] = obras["porcentaje_avance"].replace(["", " "], "0")
 
 # Reemplazar espacios en blanco por nulos 
-obras["fecha_inicio"] = obras["fecha_inicio"].replace(["", " "], pd.NA)
+obras["porcentaje_avance"] = obras["porcentaje_avance"].replace(["", " "], pd.NA)
 
 # Eliminar símbolos como "%" y convertir a número entero
 obras["porcentaje_avance"] = obras["porcentaje_avance"].astype(str).str.replace("%", "", regex=False)
@@ -211,6 +262,8 @@ print(obras["porcentaje_avance"].head(30))
 #--------------------------- Limpieza de columna LICITACION_OFERTA_EMPRESA ----------------------------
 
 # Reemplazar espacios vacíos por nulos 
+obras["licitacion_oferta_empresa"] = obras["licitacion_oferta_empresa"].astype(str).str.strip()
+obras["licitacion_oferta_empresa"] = obras["licitacion_oferta_empresa"].str.replace(r"\s+", "", regex=True)
 obras["licitacion_oferta_empresa"] = obras["licitacion_oferta_empresa"].replace(["", " "], pd.NA)
 
 print("\nColumna LICITACION_OFERTA_EMPRESA limpia:")
@@ -220,7 +273,10 @@ print(obras["licitacion_oferta_empresa"].head(30))
 #--------------------------- Limpieza de columna LICITACION_ANIO ----------------------------
 
 # Reemplazar espacios vacíos por nulos 
+obras["licitacion_anio"] = obras["licitacion_anio"].astype(str).str.strip()
+obras["licitacion_anio"] = obras["licitacion_anio"].str.replace(r"\s+", "", regex=True)
 obras["licitacion_anio"] = obras["licitacion_anio"].replace(["", " "], pd.NA)
+
 
 print("\nColumna LICITACION_ANIO limpia:")
 print(obras["licitacion_anio"].head(30))
@@ -240,7 +296,9 @@ print(obras["contratacion_tipo"].head(30))
 
 #--------------------------- Limpieza de columna NRO_CONTRATACION ----------------------------
 
-# Reemplazar espacios vacíos por nulos 
+# Reemplazar espacios vacíos por nulos
+obras["nro_contratacion"] = obras["nro_contratacion"].astype(str).str.strip()
+obras["nro_contratacion"] = obras["nro_contratacion"].str.replace(r"\s+", "", regex=True)
 obras["nro_contratacion"] = obras["nro_contratacion"].replace(["", " "], pd.NA)
 
 print("\nColumna NRO_CONTRATACION limpia:")
@@ -250,6 +308,8 @@ print(obras["nro_contratacion"].head(30))
 #--------------------------- Limpieza de columna CUIT_CONTRATISTA----------------------------
 
 # Reemplazar espacios vacíos por nulos 
+obras["cuit_contratista"] = obras["cuit_contratista"].astype(str).str.strip()
+obras["cuit_contratista"] = obras["cuit_contratista"].str.replace(r"\s*;\s*", ";", regex=True)  # quita espacios antes/después de ;
 obras["cuit_contratista"] = obras["cuit_contratista"].replace(["", " "], pd.NA)
 
 print("\nColumna CUIT_CONTRATISTA limpia:")
@@ -257,13 +317,20 @@ print(obras["cuit_contratista"].head(30))
 
 
 
-#--------------------------- Limpieza de columna EXPEDIENTE_NUMERO ----------------------------
+#--------------------------- Limpieza de columna EXPEDIENTE-NUMERO ----------------------------
 
 # Reemplazar espacios vacíos por nulos 
-obras["expediente_numero"] = obras["expediente_numero"].replace(["", " "], pd.NA)
+obras["expediente-numero"] = obras["expediente-numero"].astype(str).str.strip()
+obras["expediente-numero"] = obras["expediente-numero"].str.replace(r"\s*;\s*", ";", regex=True)  # quita espacios antes/después de ;
+obras["expediente-numero"] = obras["expediente-numero"].replace(["", " "], pd.NA)
 
-print("\nColumna EXPEDIENTE_NUMERO limpia:")
-print(obras["expediente_numero"].head(30))
+# Eliminar el registro con caracteres raros
+obras = obras[~obras["expediente-numero"].str.contains("EX-2016- 25.688.941í¢ÂÂMGEYA-DGIURB", na=False)]
+
+
+print("\nColumna EXPEDIENTE-NUMERO limpia:")
+print(obras["expediente-numero"].head(30))
+
 
 
 
