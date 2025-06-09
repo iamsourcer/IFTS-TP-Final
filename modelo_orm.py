@@ -1,53 +1,58 @@
-from peewee import from peewee import SqliteDatabase, AutoField, CharField, DateField, ForeignKeyField, Model
+import from peewee import SqliteDatabase, AutoField, CharField, DateField, ForeignKeyField, Model, IntegerField, TextField, BooleanField
 
 db = SqliteDatabase('observatorio-obras-urbanas.db')
 
-class Etapa(Model):
+class BaseBaseModel(Model):
+    class Meta:
+        database = db
+
+class Etapa(BaseModel):
+    nombre = CharField(unique=True)
+
+class TipoObra(BaseModel):
+    nombre = CharField(unique=True)
+
+class TipoContratacion(BaseModel):
     nombre = CharField()
 
-class TipoObra(Model):
+class Empresa(BaseModel):
+    nombre = CharField(unique=True)
+
+class AreaResponsable(BaseModel):
     nombre = CharField()
 
-class TipoContratacion(Model):
-    nombre = CharField()
-
-class Empresa(Model):
-    nombre = CharField()
-
-class AreaResponsable(Model):
-    nombre = CharField()
-
-class Barrio(Model):
+class Barrio(BaseModel):
     nombre = CharField()
 
 
-class Obra(Model):
+class Obra(BaseModel):
+    etapa = ForeignKeyField(Etapa, backref='obras')
+    tipo = ForeignKeyField(TipoObra, backref='obras')
+    tipo_contratacion = ForeignKeyField(TipoContratacion, backref='obras')
+    empresa = ForeignKeyField(Empresa, backref='obras')
+    area_responsable = ForeignKeyField(AreaResponsable, backref='obras') 
+    barrio = ForeignKeyField(Barrio, backref='obras')  
     nombre = CharField()
     descripcion = TextField()
-    monto_contrato = IntegerField()
-    licitacion_anio = DateField()
+    monto_contrato = FloatField()
+    licitacion_anio = IntegerField()
     fecha_inicio = DateField()
     porcentaje_avance = FloatField()
     lat = FloatField(null=True)
     lng = FloatField(null=True)
-    fecha_fin_inicial = 
-    plazo_meses = 
-    imagen_1 = 
-    imagen_2 = 
-    imagen_3 = 
-    imagen_4 = 
-    licitacion_anio = 
-    contratacion_tipo = 
-    nro_contratacion = 
-    cuit_contratista = 
-    beneficiarios = 
-    mano_obra = 
-    compromiso = 
-    destacada = 
-    ba_elige = 
-    link_interno = 
-    pliego_descarga = 
-    expediente-numero = 
-    estudio_ambiental_descarga = 
-    financiamiento = 
+    fecha_fin_inicial = DateField() 
+    plazo_meses = IntegerField() 
+    imagen_1 = CharField(max_length=512, null=True)
+    imagen_2 = CharField(max_length=512, null=True) 
+    imagen_3 = CharField(max_length=512, null=True) 
+    imagen_4 = CharField(max_length=512, null=True) 
+    nro_contratacion = IntegerField() 
+    cuit_contratista = CharField() 
+    beneficiarios = CharField() 
+    mano_obra = IntegerField() 
+    compromiso = BooleanField() 
+    destacada =  BooleanField()
+    link_interno = CharField(max_length=512, null=True) 
+    pliego_descarga = CharField(max_length=512, null=True)
+    expediente-numero = CharField(max_length=512, null=True) 
 
