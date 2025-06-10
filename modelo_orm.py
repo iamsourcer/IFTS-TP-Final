@@ -56,3 +56,34 @@ class Obra(BaseModel):
     pliego_descarga = CharField(max_length=512, null=True)
     expediente-numero = CharField(max_length=512, null=True) 
 
+
+    def nuevo_proyect(self):
+        ...
+
+    def iniciar_contratacion(self):
+        ...
+
+    def adjudicar_obra(self):
+        ...
+
+    def iniciar_obra(self):
+        ...
+
+    def actualizar_porcentaje_avance(self):
+        ...
+
+    def incrementar_plazo(self):
+        ...
+
+    def incrementar_mano_obra(self):
+        ...
+
+    def finalizar_obra(self):
+        ...
+
+    def rescindir_obra(self):
+        ...
+
+
+
+
