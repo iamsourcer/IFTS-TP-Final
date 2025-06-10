@@ -5,7 +5,8 @@ import numpy as np
 from unidecode import unidecode
 
 #Leer el archivo CSV original
-obras = pd.read_csv('IFTS-TP-Final/observatorio-de-obras-urbanas.csv', sep=';', encoding='latin1')
+obras = pd.read_csv('observatorio-de-obras-urbanas.csv', sep=';', encoding='latin1')
+
 
 #----------------------------------------- Limpieza de datos -----------------------------------------
 #Mostrar nombres de columnas y tipos.
@@ -336,4 +337,4 @@ print(obras["expediente-numero"].head(30))
 
 
 # Se guarda el DataFrame limpio en un nuevo archivo CSV
-obras.to_csv("IFTS-TP-Final/observatorioObrasUrbanas_limpio.csv", index=False, encoding="utf-8")
+obras.to_csv("observatorioObrasUrbanas_limpio.csv", index=False, encoding="utf-8")
