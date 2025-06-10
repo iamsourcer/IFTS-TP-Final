@@ -1,8 +1,8 @@
-import from peewee import SqliteDatabase, AutoField, CharField, DateField, ForeignKeyField, Model, IntegerField, TextField, BooleanField
+from peewee import SqliteDatabase, AutoField, CharField, DateField, ForeignKeyField, Model, IntegerField, TextField, BooleanField, FloatField
 
 db = SqliteDatabase('observatorio-obras-urbanas.db')
 
-class BaseBaseModel(Model):
+class BaseModel(Model):
     class Meta:
         database = db
 
@@ -54,5 +54,37 @@ class Obra(BaseModel):
     destacada =  BooleanField()
     link_interno = CharField(max_length=512, null=True) 
     pliego_descarga = CharField(max_length=512, null=True)
-    expediente-numero = CharField(max_length=512, null=True) 
+    expediente_numero = CharField(max_length=512, null=True) 
+
+
+    def nuevo_proyect(self):
+        ...
+
+    def iniciar_contratacion(self):
+        ...
+
+    def adjudicar_obra(self):
+        ...
+
+    def iniciar_obra(self):
+        ...
+
+    def actualizar_porcentaje_avance(self):
+        ...
+
+    def incrementar_plazo(self):
+        ...
+
+    def incrementar_mano_obra(self):
+        ...
+
+    def finalizar_obra(self):
+        ...
+
+    def rescindir_obra(self):
+        ...
+
+
+
+
 
