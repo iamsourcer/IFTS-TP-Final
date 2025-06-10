@@ -57,7 +57,7 @@ class Obra(BaseModel):
     expediente_numero = CharField(max_length=512, null=True) 
 
 
-    def nuevo_proyect(self):
+    def nuevo_proyecto(self):
         ...
 
     def iniciar_contratacion(self):
