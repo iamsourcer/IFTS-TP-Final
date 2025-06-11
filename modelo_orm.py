@@ -9,20 +9,24 @@ class BaseModel(Model):
 class Etapa(BaseModel):
     nombre = CharField(unique=True)
 
-class TipoObra(BaseModel):
+class Tipo(BaseModel):
     nombre = CharField(unique=True)
 
-class TipoContratacion(BaseModel):
+class Contratacion_tipo(BaseModel):
     nombre = CharField()
 
-class Empresa(BaseModel):
+class Licitacion_oferta_empresa(BaseModel):
     nombre = CharField(unique=True)
 
-class AreaResponsable(BaseModel):
+class Area_responsable(BaseModel):
     nombre = CharField()
 
 class Barrio(BaseModel):
     nombre = CharField()
+
+class Comuna(BaseModel):
+    nombre = CharField()
+    
 
 
 class Obra(BaseModel):
