@@ -33,9 +33,9 @@ class Contratista(BaseModel):
     cuit_contratista = CharField() 
 
 class Direccion(BaseModel):
-    nombre = CharField()
-    barrio = ForeignKeyField(Barrio, backref='obras')  
-    comuna = ForeignKeyField(Comuna, backref='obras')
+    ubicacion = CharField()
+    barrio = ForeignKeyField(Barrio, backref='direcciones')  
+    comuna = ForeignKeyField(Comuna, backref='direcciones')
     lat = FloatField(null=True)
     lng = FloatField(null=True)
 
