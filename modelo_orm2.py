@@ -19,9 +19,6 @@ class TipoObra(BaseModel):
 class ContratacionTipo(BaseModel):
     nombre = CharField()
 
-class LicitacioTipoEmpresa(BaseModel):
-    nombre = CharField(unique=True)
-
 class AreaResponsable(BaseModel):
     nombre = CharField()
 
@@ -32,7 +29,7 @@ class Comuna(BaseModel):
     nombre = CharField()
 
 class Contratista(BaseModel):
-    nombre = CharField()
+    nombre_empresa = CharField()
     cuit_contratista = CharField() 
 
 class Direccion(BaseModel):
@@ -46,7 +43,6 @@ class Obra(BaseModel):
     etapa = ForeignKeyField(Etapa, backref='obras')
     tipo = ForeignKeyField(TipoObra, backref='obras')
     contratacion_tipo = ForeignKeyField(ContratacionTipo, backref='obras')
-    licitacion_tipo_empresa = ForeignKeyField(LicitacionTipoEmpresa, backref='obras')
     area_responsable = ForeignKeyField(AreaResponsable, backref='obras') 
     direccion = ForeignKeyField(Direccion, backref='obras')
 
