@@ -10,34 +10,63 @@ class BaseModel(Model):
 class Entorno(BaseModel):
     nombre = CharField(unique=True)
 
+    class Meta:
+        db_table = "entornos"
+
 class Etapa(BaseModel):
     nombre = CharField(unique=True)
+
+    class Meta:
+        db_table = "etapas"
 
 class TipoObra(BaseModel):
     nombre = CharField(unique=True)
 
+    class Meta:
+        db_table = "tipo_obras"
+
 class ContratacionTipo(BaseModel):
     nombre = CharField()
+
+    class Meta:
+        db_table = "contratacion_tipo"
 
 class AreaResponsable(BaseModel):
     nombre = CharField()
 
+    class Meta:
+        db_table = "area_responsable"
+
 class Barrio(BaseModel):
     nombre = CharField()
+    comuna = ForeignKeyField(Comuna, backref='comunas')
+
+    class Meta:
+        db_table = "barrios"
 
 class Comuna(BaseModel):
     nombre = CharField()
 
+    class Meta:
+        db_table = "comunas"
+
 class Contratista(BaseModel):
     nombre_empresa = CharField()
     cuit_contratista = CharField() 
+    nro_contratacion = IntegerField() 
+    expediente_numero = CharField(max_length=512, null=True) 
+    
+    class Meta:
+        db_table = "contratistas"
 
 class Direccion(BaseModel):
     ubicacion = CharField()
-    barrio = ForeignKeyField(Barrio, backref='direcciones')  
-    comuna = ForeignKeyField(Comuna, backref='direcciones')
+    barrio = ForeignKeyField(Barrio, backref='barrios')  
     lat = FloatField(null=True)
     lng = FloatField(null=True)
+
+    class Meta:
+        db_table = "direccion"
 
 class Obra(BaseModel):
     etapa = ForeignKeyField(Etapa, backref='obras')
@@ -55,10 +84,8 @@ class Obra(BaseModel):
     plazo_meses = IntegerField() 
     licitacion_oferta_empresa = ForeignKeyField(Contratista, backref='obras')
     licitacion_anio = IntegerField()
-    nro_contratacion = IntegerField() 
-    expediente_numero = CharField(max_length=512, null=True) 
     imagen_1 = CharField(max_length=512, null=True)
-
+    mano__obra = IntegerField()
 
 
     def nuevo_proyecto(self):
