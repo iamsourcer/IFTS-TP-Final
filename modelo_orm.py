@@ -2,23 +2,27 @@ from peewee import SqliteDatabase, AutoField, CharField, DateField, ForeignKeyFi
 
 db = SqliteDatabase('observatorio-obras-urbanas.db')
 
+
 class BaseModel(Model):
     class Meta:
         database = db
 
+class Entorno(BaseModel):
+    nombre = CharField(unique=True)
+
 class Etapa(BaseModel):
     nombre = CharField(unique=True)
 
-class Tipo(BaseModel):
+class TipoObra(BaseModel):
     nombre = CharField(unique=True)
 
-class Contratacion_tipo(BaseModel):
+class ContratacionTipo(BaseModel):
     nombre = CharField()
 
-class Licitacion_oferta_empresa(BaseModel):
+class LicitacionTipoEmpresa(BaseModel):
     nombre = CharField(unique=True)
 
-class Area_responsable(BaseModel):
+class AreaResponsable(BaseModel):
     nombre = CharField()
 
 class Barrio(BaseModel):
@@ -26,42 +30,42 @@ class Barrio(BaseModel):
 
 class Comuna(BaseModel):
     nombre = CharField()
-    
 
+class Contratista(BaseModel):
+    nombre = CharField()
+    cuit_contratista = CharField() 
+
+class Direccion(BaseModel):
+    nombre = CharField()
+    barrio = ForeignKeyField(Barrio, backref='obras')  
+    comuna = ForeignKeyField(Comuna, backref='obras')
+    lat = FloatField(null=True)
+    lng = FloatField(null=True)
 
 class Obra(BaseModel):
     etapa = ForeignKeyField(Etapa, backref='obras')
     tipo = ForeignKeyField(TipoObra, backref='obras')
-    tipo_contratacion = ForeignKeyField(TipoContratacion, backref='obras')
-    empresa = ForeignKeyField(Empresa, backref='obras')
+    contratacion_tipo = ForeignKeyField(ContratacionTipo, backref='obras')
+    licitacion_tipo_empresa = ForeignKeyField(LicitacionTipoEmpresa, backref='obras')
     area_responsable = ForeignKeyField(AreaResponsable, backref='obras') 
-    barrio = ForeignKeyField(Barrio, backref='obras')  
+    direccion = ForeignKeyField(Direccion, backref='obras')
+
     nombre = CharField()
     descripcion = TextField()
     monto_contrato = FloatField()
-    licitacion_anio = IntegerField()
     fecha_inicio = DateField()
     porcentaje_avance = FloatField()
-    lat = FloatField(null=True)
-    lng = FloatField(null=True)
     fecha_fin_inicial = DateField() 
     plazo_meses = IntegerField() 
-    imagen_1 = CharField(max_length=512, null=True)
-    imagen_2 = CharField(max_length=512, null=True) 
-    imagen_3 = CharField(max_length=512, null=True) 
-    imagen_4 = CharField(max_length=512, null=True) 
+    licitacion_oferta_empresa = ForeignKeyField(Contratista, backref='obras')
+    licitacion_anio = IntegerField()
     nro_contratacion = IntegerField() 
-    cuit_contratista = CharField() 
-    beneficiarios = CharField() 
-    mano_obra = IntegerField() 
-    compromiso = BooleanField() 
-    destacada =  BooleanField()
-    link_interno = CharField(max_length=512, null=True) 
-    pliego_descarga = CharField(max_length=512, null=True)
     expediente_numero = CharField(max_length=512, null=True) 
+    imagen_1 = CharField(max_length=512, null=True)
 
 
-    def nuevo_proyect(self):
+
+    def nuevo_proyecto(self):
         ...
 
     def iniciar_contratacion(self):
@@ -87,7 +91,3 @@ class Obra(BaseModel):
 
     def rescindir_obra(self):
         ...
-
-
-
-
