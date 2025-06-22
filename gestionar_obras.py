@@ -364,7 +364,8 @@ class GestionarObra(ABC):
             print("Error al crear la obra:", e)
             return None
 
-
+# ACLARACION ENORME: El punto 17 esta fuertemente relacionado con el 4f asi que ya estaria casi resuelto por este lado.
+# Habria que chequear a la larga si no hay que añadirle cosas en base a los siguientes ejercicios
 
     @classmethod
 def obtener_indicadores(cls):
