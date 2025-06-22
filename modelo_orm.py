@@ -1,60 +1,94 @@
 from peewee import SqliteDatabase, AutoField, CharField, DateField, ForeignKeyField, Model, IntegerField, TextField, BooleanField, FloatField
 
-db = SqliteDatabase('observatorio-obras-urbanas.db')
+db = SqliteDatabase('obras-urbanas.db')                                     #Se cambia el nombre de la base de datos según como se indica en la documentación del proyecto
+
 
 class BaseModel(Model):
     class Meta:
         database = db
 
+class Entorno(BaseModel):
+    nombre = CharField(unique=True)
+
+    class Meta:
+        db_table = "entornos"
+
 class Etapa(BaseModel):
     nombre = CharField(unique=True)
+
+    class Meta:
+        db_table = "etapas"
 
 class TipoObra(BaseModel):
     nombre = CharField(unique=True)
 
-class TipoContratacion(BaseModel):
+    class Meta:
+        db_table = "tipo_obras"
+
+class ContratacionTipo(BaseModel):
     nombre = CharField()
 
-class Empresa(BaseModel):
-    nombre = CharField(unique=True)
+    class Meta:
+        db_table = "contratacion_tipo"
 
 class AreaResponsable(BaseModel):
     nombre = CharField()
 
-class Barrio(BaseModel):
+    class Meta:
+        db_table = "area_responsable"
+
+class Comuna(BaseModel):
     nombre = CharField()
 
+    class Meta:
+        db_table = "comunas"
+
+class Barrio(BaseModel):
+    nombre = CharField()
+    comuna = ForeignKeyField(Comuna, backref='comunas')
+
+    class Meta:
+        db_table = "barrios"
+
+class Contratista(BaseModel):
+    nombre_empresa = CharField()
+    cuit_contratista = CharField() 
+    nro_contratacion = IntegerField() 
+    expediente_numero = CharField(max_length=512, null=True) 
+    
+    class Meta:
+        db_table = "contratistas"
+
+class Direccion(BaseModel):
+    ubicacion = CharField()
+    barrio = ForeignKeyField(Barrio, backref='barrios')  
+    lat = FloatField(null=True)
+    lng = FloatField(null=True)
+
+    class Meta:
+        db_table = "direccion"
 
 class Obra(BaseModel):
+    entorno = ForeignKeyField(Entorno, backref='obras')                     #agregado entorno
     etapa = ForeignKeyField(Etapa, backref='obras')
     tipo = ForeignKeyField(TipoObra, backref='obras')
-    tipo_contratacion = ForeignKeyField(TipoContratacion, backref='obras')
-    empresa = ForeignKeyField(Empresa, backref='obras')
+    contratacion_tipo = ForeignKeyField(ContratacionTipo, backref='obras')
     area_responsable = ForeignKeyField(AreaResponsable, backref='obras') 
-    barrio = ForeignKeyField(Barrio, backref='obras')  
+    direccion = ForeignKeyField(Direccion, backref='obras')
+    licitacion_oferta_empresa = ForeignKeyField(Contratista, backref='obras')
+
     nombre = CharField()
     descripcion = TextField()
     monto_contrato = FloatField()
-    licitacion_anio = IntegerField()
     fecha_inicio = DateField()
-    porcentaje_avance = FloatField()
-    lat = FloatField(null=True)
-    lng = FloatField(null=True)
-    fecha_fin_inicial = DateField() 
-    plazo_meses = IntegerField() 
+    fecha_fin_inicial = DateField()
+    plazo_meses = IntegerField()     
+    porcentaje_avance = FloatField()    
+    licitacion_anio = IntegerField()
     imagen_1 = CharField(max_length=512, null=True)
-    imagen_2 = CharField(max_length=512, null=True) 
-    imagen_3 = CharField(max_length=512, null=True) 
-    imagen_4 = CharField(max_length=512, null=True) 
-    nro_contratacion = IntegerField() 
-    cuit_contratista = CharField() 
-    beneficiarios = CharField() 
-    mano_obra = IntegerField() 
-    compromiso = BooleanField() 
-    destacada =  BooleanField()
-    link_interno = CharField(max_length=512, null=True) 
-    pliego_descarga = CharField(max_length=512, null=True)
-    expediente_numero = CharField(max_length=512, null=True) 
+    mano_obra = IntegerField()
+    destacada = BooleanField(default=False)                                 #Se agrega la columna destacda que es necesaria para el punto 11
+    financiamiento = CharField(max_length=512, null=True)                   #Se agrega la columna financiamiento que es necesaria para el punto 11
 
 
     def nuevo_proyecto(self):
