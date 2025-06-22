@@ -259,15 +259,166 @@ class GestionarObra(ABC):
         datos_limpios = pd.read_csv('observatorioObrasUrbanas_limpio.csv', encoding='latin1')
         return datos_limpios 
 
-    @classmethod
+   @classmethod
     def nueva_obra(cls):
-        pass
+        """
+        Crear una nueva instancia de Obra pidiendo los datos por input, 
+        validando claves foráneas, y guardando en la DB.
+        """
+        print("Crear nueva Obra")
+        # Función interna para buscar y validar claves foráneas
+        def elegir_instancia(modelo, campo="nombre"):
+            while True:
+                valor = input(f"Ingrese {campo} para {modelo._name_}: ").strip()
+                try:
+                    instancia = modelo.get(getattr(modelo, campo) == valor)
+                    return instancia
+                except modelo.DoesNotExist:
+                    print(f"No existe {modelo._name_} con {campo} '{valor}'. Intente nuevamente.")
+
+        # Selección de claves foráneas
+        etapa = elegir_instancia(Etapa)
+        tipo = elegir_instancia(TipoObra)
+        contratacion_tipo = elegir_instancia(ContratacionTipo)
+        area_responsable = elegir_instancia(AreaResponsable)
+        barrio = elegir_instancia(Barrio)
+        ubicacion = input("Ingrese ubicación/dirección: ").strip()
+        direccion, _ = Direccion.get_or_create(ubicacion=ubicacion, barrio=barrio)
+
+        # Datos simples
+        nombre = input("Nombre de la obra: ").strip()
+        descripcion = input("Descripción: ").strip()
+        while True:
+            try:
+                monto_contrato = float(input("Monto del contrato: ").replace(",", "."))
+                break
+            except ValueError:
+                print("Monto inválido. Ingrese un número.")
+
+        while True:
+            fecha_inicio = input("Fecha de inicio (YYYY-MM-DD): ").strip()
+            if fecha_inicio == "" or len(fecha_inicio.split("-")) == 3:
+                break
+            print("Fecha inválida. Formato esperado: YYYY-MM-DD.")
+
+        while True:
+            try:
+                porcentaje_avance = float(input("Porcentaje de avance (0-100): ").replace(",", "."))
+                break
+            except ValueError:
+                print("Porcentaje inválido.")
+
+        while True:
+            fecha_fin_inicial = input("Fecha fin inicial (YYYY-MM-DD): ").strip()
+            if fecha_fin_inicial == "" or len(fecha_fin_inicial.split("-")) == 3:
+                break
+            print("Fecha inválida. Formato esperado: YYYY-MM-DD.")
+
+        while True:
+            try:
+                plazo_meses = int(input("Plazo en meses: "))
+                break
+            except ValueError:
+                print("Valor inválido. Ingrese un número entero.")
+
+        contratista = elegir_instancia(Contratista, campo="nombre_empresa")
+        while True:
+            try:
+                licitacion_anio = int(input("Año de licitación: "))
+                break
+            except ValueError:
+                print("Año inválido. Ingrese un número entero.")
+
+        imagen_1 = input("Ruta imagen (opcional): ").strip() or None
+
+        while True:
+            try:
+                mano_obra = int(input("Mano de obra: "))
+                break
+            except ValueError:
+                print("Valor inválido. Ingrese un número entero.")
+
+        # Crear y guardar la Obra
+        try:
+            obra = Obra.create(
+                etapa=etapa,
+                tipo=tipo,
+                contratacion_tipo=contratacion_tipo,
+                area_responsable=area_responsable,
+                direccion=direccion,
+                nombre=nombre,
+                descripcion=descripcion,
+                monto_contrato=monto_contrato,
+                fecha_inicio=fecha_inicio if fecha_inicio else None,
+                porcentaje_avance=porcentaje_avance,
+                fecha_fin_inicial=fecha_fin_inicial if fecha_fin_inicial else None,
+                plazo_meses=plazo_meses,
+                licitacion_oferta_empresa=contratista,
+                licitacion_anio=licitacion_anio,
+                imagen_1=imagen_1,
+                mano__obra=mano_obra
+            )
+            print("Obra creada exitosamente.")
+            return obra
+            except Exception as e:
+            print("Error al crear la obra:", e)
+            return None
+
 
 
     @classmethod
-    def obtener_indicadores(cls):
-        pass
+def obtener_indicadores(cls):
+    print("Listado de todas las áreas responsables:")
+    for area in AreaResponsable.select():
+        print("-", area.nombre)
 
+    print("Listado de todos los tipos de obra:")
+    for tipo in TipoObra.select():
+        print("-", area.nombre)
+
+    print("Cantidad de obras por etapa:")
+    from peewee import fn
+    query_etapas = (Obra
+        .select(Etapa.nombre, fn.COUNT(Obra.id).alias('cantidad'))
+        .join(Etapa)
+        .group_by(Etapa)
+        )
+    for row in query_etapas:
+        print(f"- {row.etapa.nombre}: {row.cantidad}")
+
+        
+    print("Obras y monto total por tipo de obra:")
+    query_tipo = (Obra
+        .select(TipoObra.nombre, fn.COUNT(Obra.id).alias('cantidad'), fn.SUM(Obra.monto_contrato).alias('monto_total'))
+        .join(TipoObra)
+        .group_by(TipoObra)
+        )
+    for row in query_tipo:
+        print(f"- {row.tipo.nombre}: {row.cantidad} obras, ${row.monto_total:,.2f}")
+
+     
+    print("Barrios en comunas 1, 2 y 3:")
+    comunas = Comuna.select().where(Comuna.nombre.in_(["1", "2", "3"]))
+    barrios = Barrio.select().where(Barrio.comuna.in_(comunas))
+    for barrio in barrios:
+        print(f"- {barrio.nombre} (Comuna {barrio.comuna.nombre})")
+        
+    print("\nCantidad de obras finalizadas en plazo ≤ 24 meses:")
+    try:
+        etapa_finalizada = Etapa.get(Etapa.nombre.contains("Finalizada"))
+        obras_finalizadas = Obra.select().where(
+        (Obra.etapa == etapa_finalizada) & (Obra.plazo_meses <= 24)
+        ).count()
+        print(f"{obras_finalizadas} obras")
+    except Etapa.DoesNotExist:
+        print("No se encontró etapa 'Finalizada'.")
+
+       
+        print("Monto total de inversión:")
+        total = Obra.select(fn.SUM(Obra.monto_contrato)).scalar()
+        print(f"${total:,.2f}" if total else "$0.00")
+
+        GestionarObra.obtener_indicadores()
 
 if __name__ == '__main__':
     print('\t[DEBUG] - conectando DB')
