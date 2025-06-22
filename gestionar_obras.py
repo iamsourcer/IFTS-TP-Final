@@ -402,7 +402,8 @@ def obtener_indicadores(cls):
     barrios = Barrio.select().where(Barrio.comuna.in_(comunas))
     for barrio in barrios:
         print(f"- {barrio.nombre} (Comuna {barrio.comuna.nombre})")
-        
+
+    # Busca la etapa cuyo nombre contenga "Finalizada" y cuenta cuántas obras tienen esa etapa con un plazo menor o igual a 24 meses.
     print("\nCantidad de obras finalizadas en plazo ≤ 24 meses:")
     try:
         etapa_finalizada = Etapa.get(Etapa.nombre.contains("Finalizada"))
@@ -413,7 +414,7 @@ def obtener_indicadores(cls):
     except Etapa.DoesNotExist:
         print("No se encontró etapa 'Finalizada'.")
 
-       
+       # Suma de todos los montos de contrato de las obras registradas y muestra el resultado.
         print("Monto total de inversión:")
         total = Obra.select(fn.SUM(Obra.monto_contrato)).scalar()
         print(f"${total:,.2f}" if total else "$0.00")
