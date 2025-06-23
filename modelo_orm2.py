@@ -109,19 +109,21 @@ class Obra(BaseModel):
     financiamiento = CharField(max_length=512, null=True)
 
     def nuevo_proyecto(self):
-        ...
+
         try:
             proyecto = Etapa.get_or_create(nombre="Proyecto")
+
+            if proyecto:
+                print('Proyecto existente')
+                return
+
+            proyecto.save()
+            print('El proyecto ha sido creado')
+            return
+
         except Exception as e:
             print(f'[ERROR] - {e}')
 
-        if proyecto:
-            print('Proyecto existente')
-            return
-
-        proyecto.save()
-        print('El proyecto ha sido creado')
-        return
 
         
     def iniciar_contratacion(self):
