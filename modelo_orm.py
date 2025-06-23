@@ -91,9 +91,19 @@ class Obra(BaseModel):
     financiamiento = CharField(max_length=512, null=True)                   #Se agrega la columna financiamiento que es necesaria para el punto 11
 
 
-    def nuevo_proyecto(self):
-        ...
-
+    """ def nuevo_proyecto(self):
+        try:
+            estapa_proyecto, created = Etapa.get_or_create(nombre_etapa = "Proyecto")
+            if (created):
+                print("Etapa 'Proyecto' creada exitosamente en la DB.")
+            self.etapa = estapa_proyecto
+            self.save()
+            print(f"Obra '{self.nombre}': Etapa iniciada como 'Proyecto'.")
+            return True
+        except Exception as e:
+            print(f"[ERROR] - al iniciar nuevo proyecto para obra '{self.nombre}': {e}")
+            return False """
+        
     def iniciar_contratacion(self):
         ...
 

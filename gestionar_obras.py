@@ -214,6 +214,10 @@ class GestionarObra(ABC):
         obras["cuit_contratista"] = obras["cuit_contratista"].str.replace(r"\s*;\s*", ";", regex=True)  # quita espacios antes/después de ;
         obras["cuit_contratista"] = obras["cuit_contratista"].replace(["", " "], pd.NA)
 
+        #---------------------------- Limpieza de la columna IMAGEN_1 ----------------------------
+
+        obras["imagen_1"] = obras["imagen_1"].astype(str).str.strip()
+        obras["imagen_1"] = obras["imagen_1"].replace(["", " "], pd.NA)
 
         #---------------------------- Limpieza de columna MANO_OBRA ----------------------------
 
@@ -351,7 +355,7 @@ class GestionarObra(ABC):
                     lng_val = to_float_or_none(row['lng'])
                     monto_contrato_val = to_float_or_none(row['monto_contrato'])
                     licitacion_anio_val = to_int_or_none(row['licitacion_anio'])
-#                     nro_contratacion_val = to_int_or_none(row['nro_contratacion'])
+                    nro_contratacion_val = to_int_or_none(row['nro_contratacion'])
                     nro_contratacion_val = str(row['nro_contratacion']) if pd.notna(row['nro_contratacion']) else None
 
                     fecha_inicio_val = to_date_or_none(row['fecha_inicio'])
@@ -451,6 +455,8 @@ class GestionarObra(ABC):
                     # raise
 
         db.close()
+
+
     @classmethod
     def nueva_obra(cls):
         pass
@@ -468,12 +474,11 @@ class GestionarObra(ABC):
 
 
 if __name__ == '__main__':
-    print('\t[DEBUG] - conectando DB')
-    GestionarObra.connect_db()
-    print('\t[DEBUG] - extrayendo datos (main)')
-    GestionarObra.extraer_datos()
-    print('\t[DEBUG] - cargando datos')
-    GestionarObra.cargar_datos()
-    print('\t[DEBUG] - mapeando a la DB')
-    GestionarObra.mapear_orm()
-
+    #print('\t[DEBUG] - conectando DB')
+    #GestionarObra.connect_db()
+    #print('\t[DEBUG] - extrayendo datos (main)')
+    #GestionarObra.extraer_datos()
+    #print('\t[DEBUG] - cargando datos')
+    #GestionarObra.cargar_datos()
+    #print('\t[DEBUG] - mapeando a la DB')
+    #GestionarObra.mapear_orm()
