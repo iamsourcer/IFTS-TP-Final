@@ -110,7 +110,20 @@ class Obra(BaseModel):
 
     def nuevo_proyecto(self):
         ...
+        try:
+            proyecto = Etapa.get_or_create(nombre="Proyecto")
+        except Exception as e:
+            print(f'[ERROR] - {e}')
 
+        if proyecto:
+            print('Proyecto existente')
+            return
+
+        proyecto.save()
+        print('El proyecto ha sido creado')
+        return
+
+        
     def iniciar_contratacion(self):
         ...
     def adjudicar_obra(self):
