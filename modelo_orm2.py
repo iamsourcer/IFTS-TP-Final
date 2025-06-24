@@ -58,85 +58,89 @@ class Direccion(BaseModel):
     class Meta:
         db_table = "direccion"
 
+
 class Obra(BaseModel):
     etapa = ForeignKeyField(Etapa, backref='obras')
     tipo = ForeignKeyField(TipoObra, backref='obras')
-    contratacion_tipo = ForeignKeyField(ContratacionTipo, backref='obras')
+    tipo_contratacion = ForeignKeyField(TipoContratacion, backref='obras')
+    empresa = ForeignKeyField(Empresa, backref='obras')
     area_responsable = ForeignKeyField(AreaResponsable, backref='obras') 
-    direccion = ForeignKeyField(Direccion, backref='obras')
-
+    barrio = ForeignKeyField(Barrio, backref='obras')  
     nombre = CharField()
     descripcion = TextField()
     monto_contrato = FloatField()
+    licitacion_anio = IntegerField()
     fecha_inicio = DateField()
     porcentaje_avance = FloatField()
+    lat = FloatField(null=True)
+    lng = FloatField(null=True)
     fecha_fin_inicial = DateField() 
     plazo_meses = IntegerField() 
-    licitacion_oferta_empresa = ForeignKeyField(Contratista, backref='obras')
-    licitacion_anio = IntegerField()
     imagen_1 = CharField(max_length=512, null=True)
-    mano__obra = IntegerField()
+    imagen_2 = CharField(max_length=512, null=True) 
+    imagen_3 = CharField(max_length=512, null=True) 
+    imagen_4 = CharField(max_length=512, null=True) 
+    nro_contratacion = IntegerField() 
+    cuit_contratista = CharField() 
+    beneficiarios = CharField() 
+    mano_obra = IntegerField() 
+    compromiso = BooleanField() 
+    destacada =  BooleanField()
+    link_interno = CharField(max_length=512, null=True) 
+    pliego_descarga = CharField(max_length=512, null=True)
+    expediente_numero = CharField(max_length=512, null=True) 
+    finalizada = BooleanField(default=False)
+    rescindida = BooleanField(default=False)
 
+    class Meta:
+        db_table = "obras"
 
     def nuevo_proyecto(self):
-        ...
-        
-
-    def iniciar_contratacion(self):
-        etapa_contratacion, _ = Etapa.get_or_create(nombre="Contratación")
-        self.etapa = etapa_contratacion
-        self.save()
-        print(f"La obra '{self.nombre}' está en etapa: Contratación (tipo: {self.contratacion_tipo.nombre})")
-
-    def adjudicar_obra(self, contratista, nro_expediente):
-        self.licitacion_oferta_empresa = contratista
-        self.licitacion_oferta_empresa.expediente_numero = nro_expediente
-        self.licitacion_oferta_empresa.save()
-        etapa_adjudicada, _ = Etapa.get_or_create(nombre="Adjudicada")
-        self.etapa, _ = etapa_adjudicada
-        self.save()
-        print(f"La obra '{self.nombre}' ha sido adjudicada a {contratista.nombre_empresa} con expediente {nro_expediente}.")
-        
-
-    def iniciar_obra(self):
-        self.fecha_inicio = fecha_inicio
-        self.fecha_fin_inicial = fecha_fin_inicial
-        self.mano__obra = mano_obra
-        etapa_inicio = Etapa.get_or_create(nombre="En Ejecución")
-        self.etapa = etapa_inicio
-        self.save()
-        print(f"La obra '{self.nombre}' ha iniciado con fecha {self.fecha_inicio}.")
-
-
-    def actualizar_porcentaje_avance(self):
-        self.porcentaje_avance = porcentaje_avance
-        self.save()
-        print(f"El porcentaje de avance de la obra '{self.nombre}' ha sido actualizado a {self.porcentaje_avance}%.")
-
-    def incrementar_plazo(self):
-        self.plazo_meses += meses_extra
-        self.save()
-        print(f"El plazo de la obra '{self.nombre}' ha sido incrementado a {self.plazo_meses} meses.")
-
-    def incrementar_mano_obra(self):
-        self.mano__obra += cantidad
-        self.save()
-        print(f"La mano de obra de la obra '{self.nombre}' ha sido incrementada a {self.mano__obra}.")
-        
-    def finalizar_obra(self):
-        etapa_finalizada, _ = Etapa.get_or_create(nombre="Finalizada")
-        self.etapa = etapa_finalizada
-        self.porcentaje_avance = 100
-        self.save()
-        print(f"La obra '{self.nombre}' ha sido finalizada.")
-
-    def rescindir_obra(self):
-        etapa_rescindida, _ = Etapa.get_or_create(nombre="Rescindida")
-        self.etapa = etapa_rescindida
+        self.etapa = Etapa.get(Etapa.nombre == "Proyecto")
         self.porcentaje_avance = 0
         self.save()
-        print(f"La obra '{self.nombre}' ha sido rescindida.")
+        
+    def iniciar_contratacion(self):
+        self.etapa = Etapa.get(Etapa.nombre == "Licitación")
+        self.save()
 
+  
+    def adjudicar_obra(self):
+        self.etapa = Etapa.get(Etapa.nombre == "Adjudicada")
+        self.save()
+
+   
+    def iniciar_obra(self):
+        self.etapa = Etapa.get(Etapa.nombre == "En Ejecucion")
+        self.save()
+
+    
+    def actualizar_porcentaje_avance(self, valor):
+        self.porcentaje_avance = valor
+        self.save()
+
+    
+    def incrementar_plazo(self, dias):
+        self.plazo_dias += dias
+        self.save()
+
+    
+    def incrementar_mano_obra(self, cantidad):
+        self.mano_obra += cantidad
+        self.save()
+
+    
+    def finalizar_obra(self):
+        self.etapa = Etapa.get(Etapa.nombre == "Finalizada")
+        self.porcentaje_avance = 100
+        self.finalizada = True
+        self.save()
+
+    
+    def rescindir_obra(self):
+        self.rescindida = True
+        self.etapa = Etapa.get(Etapa.nombre == "Rescindida")
+        self.save()
 
 
 
