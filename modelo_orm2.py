@@ -113,14 +113,35 @@ asignarle la Empresa (debe ser una empresa existente en la BD) y el nro_expedien
         self.etapa = Etapa.get(Etapa.nombre == "Adjudicada")
         self.save()
 
-    """ ejemplo de uso: 
-    empresa = Empresa.get(Empresa.nombre == "EMPRESA S.A.")
-    obra = Obra.get_by_id(1)
-    obra.adjudicar_obra(empresa, "EXP-2025-123456")"""
+#   Invocar al método adjudicar_obra() de la clase Obra, asignándole una instancia de Empresa: 
+#   empresa = Empresa.get(Empresa.nombre == "nombre random.")
+#   obra = Obra.get_by_id(1)
+#   obra.adjudicar_obra(empresa, "Expediente random")"""
    
+
+    """ 11. Para indicar el inicio de la obra, se debe invocar al método iniciar_obra(), y asignarle valores
+        a los siguientes atributos: destacada, fecha_inicio, fecha_fin_inicial, fuente_financiamiento
+        (debe ser un valor existente en la BD) y mano_obra."""
+
     def iniciar_obra(self):
+        self.destacada = destacada 
+        self.fecha_inicio = fecha_inicio
+        self.fecha_fin_inicial = fecha_fin_inicial
+        self.mano_obra = mano_obra
         self.etapa = Etapa.get(Etapa.nombre == "En Ejecucion")
         self.save()
+
+# Invocar al método iniciar_obra() de la clase Obra, asignándole los valores correspondientes:
+# from datetime import date
+# fuente = FuenteFinanciamiento.get(FuenteFinanciamiento.nombre == "Nacional")
+# obra = Obra.get_by_id(1)
+# obra.iniciar_obra(
+#     destacada=True,
+#     fecha_inicio=date(2025, 7, 1),
+#     fecha_fin_inicial=date(2026, 7, 1),
+#     fuente_financiamiento=fuente,
+#     mano_obra="Contratada"
+# )       
 
     
     def actualizar_porcentaje_avance(self, valor):
