@@ -259,7 +259,7 @@ class GestionarObra(ABC):
         datos_limpios = pd.read_csv('observatorioObrasUrbanas_limpio.csv', encoding='latin1')
         return datos_limpios 
 
-   @classmethod
+    @classmethod
     def nueva_obra(cls):
         """
         Crear una nueva instancia de Obra pidiendo los datos por input, 
@@ -269,12 +269,12 @@ class GestionarObra(ABC):
         # Función interna para buscar y validar claves foráneas
         def elegir_instancia(modelo, campo="nombre"):
             while True:
-                valor = input(f"Ingrese {campo} para {modelo._name_}: ").strip()
+                valor = input(f"Ingrese {campo} para {modelo.__name__}: ").strip()
                 try:
                     instancia = modelo.get(getattr(modelo, campo) == valor)
                     return instancia
                 except modelo.DoesNotExist:
-                    print(f"No existe {modelo._name_} con {campo} '{valor}'. Intente nuevamente.")
+                    print(f"No existe {modelo.__name__} con {campo} '{valor}'. Intente nuevamente.")
 
         # Selección de claves foráneas
         etapa = elegir_instancia(Etapa)
@@ -360,14 +360,14 @@ class GestionarObra(ABC):
             )
             print("Obra creada exitosamente.")
             return obra
-            except Exception as e:
+        except Exception as e:
             print("Error al crear la obra:", e)
             return None
 
 # ACLARACION ENORME: El punto 17 esta fuertemente relacionado con el 4f asi que ya estaria casi resuelto por este lado.
 # Habria que chequear a la larga si no hay que añadirle cosas en base a los siguientes ejercicios
 
-    @classmethod
+@classmethod
 def obtener_indicadores(cls):
     print("Listado de todas las áreas responsables:")
     for area in AreaResponsable.select():
