@@ -361,118 +361,74 @@ class GestionarObra(ABC):
                 print(f'[ERROR] - Error al grabar en db - {e}')
 
         db.close()
-@classmethod
-def nueva_obra(cls):
+
+    @classmethod
+    def nueva_obra(cls):
+     """ Crea una nueva instancia de Obra pidiendo los datos por teclado. Valida claves foráneas.
+         Persiste la instancia en la BD y la retorna. """
     
-    #Crear una nueva instancia de Obra pidiendo los datos por input, validando claves foráneas, guardando en la DB con save() y retornando la instancia creada.
-   
-    from modelo_orm2 import (
-        Obra, Etapa, TipoObra, ContratacionTipo,
-        AreaResponsable, Barrio, Direccion, Contratista
-    )
-    print("=== Crear nueva Obra ===")
-
-    # Función interna para buscar y validar claves foráneas
-    def elegir_instancia(modelo, campo="nombre"):
+    def get_fk(model, field_name):
         while True:
-            valor = input(f"Ingrese {campo} para {modelo.__name__}: ").strip()
-            try:
-                instancia = modelo.get(getattr(modelo, campo) == valor)
+            valor = input(f"Ingrese {field_name}: ").strip()
+            instancia = model.select().where(model.nombre == valor).first()
+            if instancia:
                 return instancia
-            except modelo.DoesNotExist:
-                print(f"No existe {modelo.__name__} con {campo} '{valor}'. Intente nuevamente.")
+            print(f"{field_name} '{valor}' no existe. Intente nuevamente.")
 
-    # Selección de claves foráneas
-    etapa = elegir_instancia(Etapa)
-    tipo = elegir_instancia(TipoObra)
-    contratacion_tipo = elegir_instancia(ContratacionTipo)
-    area_responsable = elegir_instancia(AreaResponsable)
-    barrio = elegir_instancia(Barrio)
-    ubicacion = input("Ingrese ubicación/dirección de la obra: ").strip()
-    direccion, _ = Direccion.get_or_create(ubicacion=ubicacion, barrio=barrio)
+   
+    nombre_obra = input("Ingrese nombre de la obra: ").strip()
+    descripcion_obra = input("Ingrese descripción: ").strip()
+    direccion = input("Ingrese dirección: ").strip()
+    licitacion_anio = int(input("Ingrese año de licitación: "))
+    monto_contrato = float(input("Ingrese monto del contrato: "))
+    fecha_inicio = input("Ingrese fecha de inicio (YYYY-MM-DD): ").strip()
+    fecha_fin_inicial = input("Ingrese fecha fin inicial (YYYY-MM-DD): ").strip()
+    plazo_meses = int(input("Ingrese plazo en meses: "))
+    porcentaje_avance = float(input("Ingrese porcentaje de avance: "))
+    imagen_1 = input("Ingrese nombre o URL de imagen 1: ").strip()
+    mano_obra = input("Ingrese mano de obra: ").strip()
+    destacada = input("¿Es destacada? (s/n): ").strip().lower() == 's'
 
-    # Datos simples de la obra
-    nombre = input("Nombre de la obra: ").strip()
-    descripcion = input("Descripción: ").strip()
+    
+    entorno = get_fk(Entorno, "entorno")
+    etapa = get_fk(Etapa, "etapa")
+    tipo = get_fk(TipoObra, "tipo de obra")
+    contratacion_tipo = get_fk(ContratacionTipo, "tipo de contratación")
+    area_responsable = get_fk(AreaResponsable, "área responsable")
+    contratista = get_fk(Empresa, "empresa contratista")
+    financiamiento = get_fk(FuenteFinanciamiento, "fuente de financiamiento")
 
-    while True:
-        try:
-            monto_contrato = float(input("Monto del contrato: ").replace(",", "."))
-            break
-        except ValueError:
-            print("Monto inválido. Ingrese un número (use punto o coma para decimales).")
-
-    while True:
-        fecha_inicio = input("Fecha de inicio (YYYY-MM-DD): ").strip()
-        if fecha_inicio == "" or len(fecha_inicio.split("-")) == 3:
-            break
-        print("Fecha inválida. Formato esperado: YYYY-MM-DD o dejar vacío.")
-
-    while True:
-        try:
-            porcentaje_avance = float(input("Porcentaje de avance (0-100): ").replace(",", "."))
-            break
-        except ValueError:
-            print("Porcentaje inválido. Ingrese un número (use punto o coma para decimales).")
-
-    while True:
-        fecha_fin_inicial = input("Fecha fin inicial (YYYY-MM-DD): ").strip()
-        if fecha_fin_inicial == "" or len(fecha_fin_inicial.split("-")) == 3:
-            break
-        print("Fecha inválida. Formato esperado: YYYY-MM-DD o dejar vacío.")
-
-    while True:
-        try:
-            plazo_meses = int(input("Plazo en meses: "))
-            break
-        except ValueError:
-            print("Valor inválido. Ingrese un número entero.")
-
-    contratista = elegir_instancia(Contratista, campo="nombre_empresa")
-
-    while True:
-        try:
-            licitacion_anio = int(input("Año de licitación: "))
-            break
-        except ValueError:
-            print("Año inválido. Ingrese un número entero.")
-
-    imagen_1 = input("Ruta imagen (opcional): ").strip() or None
-
-    while True:
-        try:
-            mano_obra = int(input("Mano de obra (cantidad de personas): "))
-            break
-        except ValueError:
-            print("Valor inválido. Ingrese un número entero.")
-
-    # Crear la instancia de Obra (aún no guardada)
-    obra = Obra(
+    # Crea y guarda la obra
+    def nueva_obra(
+    entorno, etapa, tipo, contratacion_tipo, area_responsable, direccion,
+    contratista, nombre_obra, descripcion_obra, monto_contrato,
+    fecha_inicio, fecha_fin_inicial, plazo_meses, porcentaje_avance,
+    licitacion_anio, imagen_1, mano_obra, destacada, financiamiento
+):
+        obra = Obra(
+        entorno=entorno,
         etapa=etapa,
         tipo=tipo,
         contratacion_tipo=contratacion_tipo,
         area_responsable=area_responsable,
         direccion=direccion,
-        nombre=nombre,
-        descripcion=descripcion,
-        monto_contrato=monto_contrato,
-        fecha_inicio=fecha_inicio if fecha_inicio else None,
-        porcentaje_avance=porcentaje_avance,
-        fecha_fin_inicial=fecha_fin_inicial if fecha_fin_inicial else None,
-        plazo_meses=plazo_meses,
         licitacion_oferta_empresa=contratista,
+        nombre=nombre_obra,
+        descripcion=descripcion_obra,
+        monto_contrato=monto_contrato,
+        fecha_inicio=fecha_inicio,
+        fecha_fin_inicial=fecha_fin_inicial,
+        plazo_meses=plazo_meses,
+        porcentaje_avance=porcentaje_avance,
         licitacion_anio=licitacion_anio,
         imagen_1=imagen_1,
-        mano__obra=mano_obra
+        mano_obra=mano_obra,
+        destacada=destacada,
+        financiamiento=financiamiento
     )
-
-    try:
-        obra.save()  # Persistencia en la base de datos
-        print("Obra creada exitosamente.")
+        obra.save()
+        print("Obra creada con éxito.")
         return obra
-    except Exception as e:
-        print("Error al crear la obra:", e)
-        return None
 
 
 @classmethod
