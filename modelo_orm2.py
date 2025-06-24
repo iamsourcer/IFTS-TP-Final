@@ -2,43 +2,34 @@ from peewee import SqliteDatabase, AutoField, CharField, DateField, ForeignKeyFi
 
 db = SqliteDatabase('observatorio-obras-urbanas.db')
 
-
 class BaseModel(Model):
     class Meta:
         database = db
 
 class Entorno(BaseModel):
     nombre = CharField(unique=True)
-
     class Meta:
         db_table = "entornos"
 
 class Etapa(BaseModel):
     nombre = CharField(unique=True)
-
     class Meta:
         db_table = "etapas"
 
 class TipoObra(BaseModel):
     nombre = CharField(unique=True)
-
     class Meta:
         db_table = "tipo_obras"
 
 class ContratacionTipo(BaseModel):
     nombre = CharField()
-
     class Meta:
         db_table = "contratacion_tipo"
 
 class AreaResponsable(BaseModel):
     nombre = CharField()
-
     class Meta:
         db_table = "area_responsable"
-
-    class Meta:
-        db_table = "barrios"
 
 class Comuna(BaseModel):
     nombre = CharField(unique=True)
@@ -55,17 +46,15 @@ class Contratista(BaseModel):
     nombre_empresa = CharField()
     cuit_contratista = CharField() 
     nro_contratacion = IntegerField() 
-    expediente_numero = CharField(max_length=512, null=True) 
-    
+    expediente_numero = CharField(max_length=512, null=True)
     class Meta:
         db_table = "contratistas"
 
 class Direccion(BaseModel):
     ubicacion = CharField()
-    barrio = ForeignKeyField(Barrio, backref='barrios')  
+    barrio = ForeignKeyField(Barrio, backref='direcciones')
     lat = FloatField(null=True)
     lng = FloatField(null=True)
-
     class Meta:
         db_table = "direccion"
 
