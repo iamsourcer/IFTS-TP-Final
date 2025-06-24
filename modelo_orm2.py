@@ -116,8 +116,11 @@ class Obra(BaseModel):
 
     
     def actualizar_porcentaje_avance(self, valor):
-        self.porcentaje_avance = valor
-        self.save()
+        if 0 <= valor <= 100:
+            self.porcentaje_avance = valor
+            self.save()
+        else:
+            raise ValueError("El porcentaje de avance debe estar entre 0 y 100.")
 
     
     def incrementar_plazo(self, dias):
