@@ -9,62 +9,54 @@ class BaseModel(Model):
 
 class Entorno(BaseModel):
     nombre = CharField(unique=True)
-
     class Meta:
         db_table = "entornos"
 
 class Etapa(BaseModel):
     nombre = CharField(unique=True)
-
     class Meta:
         db_table = "etapas"
 
 class TipoObra(BaseModel):
     nombre = CharField(unique=True)
-
     class Meta:
         db_table = "tipo_obras"
 
 class ContratacionTipo(BaseModel):
     nombre = CharField()
-
     class Meta:
         db_table = "contratacion_tipo"
 
 class AreaResponsable(BaseModel):
     nombre = CharField()
-
     class Meta:
         db_table = "area_responsable"
 
 class Comuna(BaseModel):
-    nombre = CharField()
-
+    nombre = CharField(unique=True)
     class Meta:
         db_table = "comunas"
 
 class Barrio(BaseModel):
     nombre = CharField()
-    comuna = ForeignKeyField(Comuna, backref='comunas')
-
+    comuna = ForeignKeyField(Comuna, backref='barrios')
     class Meta:
         db_table = "barrios"
+        indexes = ((("nombre", "comuna"), True),) # Index para asegurar unicidad de nombre por comuna
 
 class Contratista(BaseModel):
     nombre_empresa = CharField()
     cuit_contratista = CharField() 
     nro_contratacion = IntegerField() 
     expediente_numero = CharField(max_length=512, null=True) 
-    
     class Meta:
         db_table = "contratistas"
 
 class Direccion(BaseModel):
     ubicacion = CharField()
-    barrio = ForeignKeyField(Barrio, backref='barrios')  
+    barrio = ForeignKeyField(Barrio, backref='direcciones')  
     lat = FloatField(null=True)
     lng = FloatField(null=True)
-
     class Meta:
         db_table = "direccion"
 
@@ -80,8 +72,8 @@ class Obra(BaseModel):
     nombre = CharField()
     descripcion = TextField()
     monto_contrato = FloatField()
-    fecha_inicio = DateField()
-    fecha_fin_inicial = DateField()
+    fecha_inicio = DateField(null=True)
+    fecha_fin_inicial = DateField(null=True)
     plazo_meses = IntegerField()     
     porcentaje_avance = FloatField()    
     licitacion_anio = IntegerField()
@@ -90,6 +82,22 @@ class Obra(BaseModel):
     destacada = BooleanField(default=False)                                 #Se agrega la columna destacda que es necesaria para el punto 11
     financiamiento = CharField(max_length=512, null=True)                   #Se agrega la columna financiamiento que es necesaria para el punto 11
 
+    #Métodos para validar 
+    def validate(self):
+        if self.plazo_meses < 0:
+            raise ValueError("El plazo en meses no puede ser negativo.")
+        if not (0 <= self.porcentaje_avance <= 100):
+            raise ValueError("El porcentaje de avance debe estar entre 0 y 100.")
+        if self.monto_contrato < 0:
+            raise ValueError("El monto del contrato no puede ser negativo.")
+        if self.mano_obra < 0:
+            raise ValueError("La mano de obra no puede ser negativa.")
+        if not self.nombre or not self.descripcion:
+            raise ValueError("El nombre y la descripción no pueden estar vacíos.")
+
+    def save(self, *args, **kwargs):
+        self.validate()
+        return super().save(*args, **kwargs)
 
     """ def nuevo_proyecto(self):
         try:
