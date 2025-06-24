@@ -45,10 +45,15 @@ class Barrio(BaseModel):
         db_table = "barrios"
 
 class Comuna(BaseModel):
-    nombre = CharField()
-
+    nombre = CharField(unique=True)
     class Meta:
         db_table = "comunas"
+
+class Barrio(BaseModel):
+    nombre = CharField(unique=True)
+    comuna = ForeignKeyField(Comuna, backref='barrios')
+    class Meta:
+        db_table = "barrios"
 
 class Contratista(BaseModel):
     nombre_empresa = CharField()
