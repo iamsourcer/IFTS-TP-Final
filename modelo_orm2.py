@@ -37,10 +37,6 @@ class AreaResponsable(BaseModel):
     class Meta:
         db_table = "area_responsable"
 
-class Barrio(BaseModel):
-    nombre = CharField()
-    comuna = ForeignKeyField(Comuna, backref='comunas')
-
     class Meta:
         db_table = "barrios"
 
