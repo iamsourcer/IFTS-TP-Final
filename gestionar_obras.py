@@ -474,62 +474,10 @@ def nueva_obra(cls):
         print("Error al crear la obra:", e)
         return None
 
-# ACLARACION ENORME: El punto 17 esta fuertemente relacionado con el 4f asi que ya estaria casi resuelto por este lado.
-# Habria que chequear a la larga si no hay que añadirle cosas en base a los siguientes ejercicios
 
 @classmethod
 def obtener_indicadores(cls):
-    print("Listado de todas las áreas responsables:")
-    for area in AreaResponsable.select():
-        print("-", area.nombre)
-
-    print("Listado de todos los tipos de obra:")
-    for tipo in TipoObra.select():
-        print("-", area.nombre)
-
-    print("Cantidad de obras por etapa:")
-    from peewee import fn
-    query_etapas = (Obra
-        .select(Etapa.nombre, fn.COUNT(Obra.id).alias('cantidad'))
-        .join(Etapa)
-        .group_by(Etapa)
-        )
-    for row in query_etapas:
-        print(f"- {row.etapa.nombre}: {row.cantidad}")
-
-        
-    print("Obras y monto total por tipo de obra:")
-    query_tipo = (Obra
-        .select(TipoObra.nombre, fn.COUNT(Obra.id).alias('cantidad'), fn.SUM(Obra.monto_contrato).alias('monto_total'))
-        .join(TipoObra)
-        .group_by(TipoObra)
-        )
-    for row in query_tipo:
-        print(f"- {row.tipo.nombre}: {row.cantidad} obras, ${row.monto_total:,.2f}")
-
-     
-    print("Barrios en comunas 1, 2 y 3:")
-    comunas = Comuna.select().where(Comuna.nombre.in_(["1", "2", "3"]))
-    barrios = Barrio.select().where(Barrio.comuna.in_(comunas))
-    for barrio in barrios:
-        print(f"- {barrio.nombre} (Comuna {barrio.comuna.nombre})")
-
-    # Busca la etapa cuyo nombre contenga "Finalizada" y cuenta cuántas obras tienen esa etapa con un plazo menor o igual a 24 meses.
-    print("\nCantidad de obras finalizadas en plazo ≤ 24 meses:")
-    try:
-        etapa_finalizada = Etapa.get(Etapa.nombre.contains("Finalizada"))
-        obras_finalizadas = Obra.select().where(
-        (Obra.etapa == etapa_finalizada) & (Obra.plazo_meses <= 24)
-        ).count()
-        print(f"{obras_finalizadas} obras")
-    except Etapa.DoesNotExist:
-        print("No se encontró etapa 'Finalizada'.")
-
-       # Suma de todos los montos de contrato de las obras registradas y muestra el resultado.
-        print("Monto total de inversión:")
-        total = Obra.select(fn.SUM(Obra.monto_contrato)).scalar()
-        print(f"${total:,.2f}" if total else "$0.00")
-
+    pass
         
 
 if __name__ == '__main__':
