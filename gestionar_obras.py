@@ -261,11 +261,9 @@ class GestionarObra(ABC):
 
 @classmethod
 def nueva_obra(cls):
-    """
-    Crear una nueva instancia de Obra pidiendo los datos por input,
-    validando claves foráneas, guardando en la DB con save()
-    y retornando la instancia creada.
-    """
+    
+    #Crear una nueva instancia de Obra pidiendo los datos por input, validando claves foráneas, guardando en la DB con save() y retornando la instancia creada.
+   
     from modelo_orm2 import (
         Obra, Etapa, TipoObra, ContratacionTipo,
         AreaResponsable, Barrio, Direccion, Contratista
