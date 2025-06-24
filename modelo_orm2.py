@@ -104,11 +104,19 @@ class Obra(BaseModel):
         self.etapa = Etapa.get(Etapa.nombre == "Licitación")
         self.save()
 
+    """ 10. Para adjudicar la obra a una empresa, se debe invocar al método adjudicar_obra() y
+asignarle la Empresa (debe ser una empresa existente en la BD) y el nro_expediente."""
   
     def adjudicar_obra(self):
+        self.empresa = empresa
+        self.expediente_numero = str(nro_expediente)
         self.etapa = Etapa.get(Etapa.nombre == "Adjudicada")
         self.save()
 
+    """ ejemplo de uso: 
+    empresa = Empresa.get(Empresa.nombre == "EMPRESA S.A.")
+    obra = Obra.get_by_id(1)
+    obra.adjudicar_obra(empresa, "EXP-2025-123456")"""
    
     def iniciar_obra(self):
         self.etapa = Etapa.get(Etapa.nombre == "En Ejecucion")
