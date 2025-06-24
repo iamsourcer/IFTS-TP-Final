@@ -398,7 +398,7 @@ class GestionarObra(ABC):
     contratista = get_fk(Empresa, "empresa contratista")
     financiamiento = get_fk(FuenteFinanciamiento, "fuente de financiamiento")
 
-    # Crea y guarda la obra
+    # Crea y guarda la obra con el returno de la función y el save
     def nueva_obra(
     entorno, etapa, tipo, contratacion_tipo, area_responsable, direccion,
     contratista, nombre_obra, descripcion_obra, monto_contrato,
