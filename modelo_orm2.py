@@ -95,6 +95,24 @@ class Obra(BaseModel):
     class Meta:
         db_table = "obras"
 
+        #Métodos para validar 
+    def validate(self):
+        if self.plazo_meses < 0:
+            raise ValueError("El plazo en meses no puede ser negativo.")
+        if not (0 <= self.porcentaje_avance <= 100):
+            raise ValueError("El porcentaje de avance debe estar entre 0 y 100.")
+        if self.monto_contrato < 0:
+            raise ValueError("El monto del contrato no puede ser negativo.")
+        if self.mano_obra < 0:
+            raise ValueError("La mano de obra no puede ser negativa.")
+        if not self.nombre or not self.descripcion:
+            raise ValueError("El nombre y la descripción no pueden estar vacíos.")
+
+    def save(self, *args, **kwargs):
+        self.validate()
+        return super().save(*args, **kwargs)
+
+
     def nuevo_proyecto(self):
         self.etapa = Etapa.get(Etapa.nombre == "Proyecto")
         self.porcentaje_avance = 0
