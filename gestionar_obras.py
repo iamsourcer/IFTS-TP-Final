@@ -207,7 +207,7 @@ class GestionarObra(ABC):
                 obras[col] = obras[col].fillna(" ")
 
 
-        # Para comuna y barrio, si hay nan o 0, poner valor por defecto
+        #Si hay nan o 0, poner valor por defecto
         obras['comuna'] = obras['comuna'].apply(lambda x: int(x) if pd.notna(x) and str(x).lower() != 'nan' else 0)
         obras['barrio'] = obras['barrio'].apply(lambda x: x if pd.notna(x) and str(x).strip().lower() != 'nan' and x.strip() != '' else 'sin barrio')
         obras['nombre'] = obras['nombre'].apply(lambda x: x if pd.notna(x) and str(x).strip().lower() != 'nan' and x.strip() != '' else 'SIN NOMBRE')
@@ -365,7 +365,177 @@ class GestionarObra(ABC):
 
     @classmethod
     def nueva_obra(cls):
-        pass
+        try:
+            #Entorno
+            while True:
+                nombre_entorno = input("Ingrese el Entorno para la Obra: ").strip()
+                entorno = Entorno.get_or_none(nombre=nombre_entorno)
+                if entorno:
+                    break
+                print("Entorno no encontrado. Intente nuevamente.")
+            #Etapa
+            while True:
+                nombre_etapa = input("Ingrese la Etapa: ").strip()
+                etapa = Etapa.get_or_none(nombre=nombre_etapa)
+                if etapa:
+                    break
+                print("Etapa no encontrada. Intente nuevamente.")
+            #Tipo de Obra
+            while True:
+                nombre_tipo_obra = input("Ingrese el Tipo de Obra: ").strip()
+                tipo = TipoObra.get_or_none(nombre=nombre_tipo_obra)
+                if tipo:
+                    break
+                print("Tipo de Obra no encontrado. Intente nuevamente.")
+            #Tipo de Contratación
+            while True:
+                nombre_tipo_contratacion = input("Ingrese el Tipo de Contratación: ").strip()
+                contratacion_tipo = ContratacionTipo.get_or_none(nombre=nombre_tipo_contratacion)
+                if contratacion_tipo:
+                    break
+                print("Tipo de Contratación no encontrado. Intente nuevamente.")
+            #Area Responsable
+            while True:
+                nombre_area_responsable = input("Ingrese el Área Responsable: ").strip()
+                area_responsable = AreaResponsable.get_or_none(nombre=nombre_area_responsable)
+                if area_responsable:
+                    break
+                print("Area responsable no encontrada. Intente nuevamente.")
+            #Comuna
+            while True:
+                nombre_comuna = input("Ingrese el número de la Comuna: ").strip()
+                comuna = Comuna.get_or_none(nombre=nombre_comuna)
+                if comuna:
+                    break
+                print("Comuna no encontrada. Intente nuevamente.")
+            #Barrio
+            while True:
+                nombre_barrio = input("Ingrese el nombre del barrio: ").strip()
+                barrio = Barrio.get_or_none(nombre=nombre_barrio, comuna=comuna)
+                if barrio:
+                    break
+                print("Barrio no encontrado para esa Comuna. Intente nuevamente.")
+            #Direccion
+            direccion_ubicacion = input("Ingrese la dirección de la Obra:").strip()
+            direccion_latitud= input("Ingrese la latitud (opcional): ").strip()
+            direccion_longitud = input("Ingrese la longitud (opcional): ").strip()
+            direccion_latitud = float(direccion_latitud) if direccion_latitud else None
+            direccion_longitud = float(direccion_longitud) if direccion_longitud else None
+            nueva_direccion, _ = Direccion.get_or_create(
+                ubicación=direccion_ubicacion,
+                barrio=barrio,
+                lat=direccion_latitud,
+                lng=direccion_longitud
+            )
+            #licitacion_ofert_empresa
+            while True:
+                nuevo_nombre_empresa = input("Ingrese el nombre de la Empresa Contratista: ").strip()
+                nro_cuit_contratista = input("Ingrese el CUIT de la Empresa Contratista:").strip()
+                nueva_empresa_contratista = Contratista.get_or_none(nombre_empresa=nuevo_nombre_empresa, cuit_contratista=nro_cuit_contratista)
+                if nueva_empresa_contratista:
+                    break
+                print("Empresa Contratista no encontrada con ese Nombre y CUIT. Intente nuevamente.")
+
+                nuevo_nro_contratacion = input("Ingrese el número de Contratación de la Empresa (opcioanl): ").strip()
+                nuevo_expediente_numero = input("Ingrese el número del Expediente (opcional): ").strip()
+                if nuevo_nro_contratacion:
+                    nueva_empresa_contratista.nro_contratacion = nuevo_nro_contratacion
+                if nuevo_expediente_numero:
+                    nueva_empresa_contratista.expediente_numero = nuevo_expediente_numero
+                nueva_empresa_contratista.save()
+            
+            nombre = input("Ingrese el nombre de la Obra: ").strip()
+            descripcion = input("Ingrese la descripción de la Obra: ").strip()
+
+            while True:
+                try:
+                    monto_contrato = float(input("Ingrese el monto del contrato: "))
+                    break
+                except ValueError:
+                    print("El monto debe ser un número válido.")
+            
+            while True:
+                fecha_inicio = input("Ingrese la fecha de inicio (YYYY-MM-DD): ").strip()
+                try:
+                    fecha_inicio = datetime.strptime(fecha_inicio, "%Y-%m-%d").date()
+                    break
+                except ValueError:
+                    print("Formato de fecha incorrecto. Use YYYY-MM-DD.")
+
+            while True:
+                fecha_fin_inicial = input("Ingrese la fecha de finalización (YYYY-MM-DD): ").strip()
+                try:
+                    fecha_fin_inicial = datetime.strptime(fecha_fin_inicial, "%Y-%m-%d").date()
+                    break
+                except ValueError:
+                    print("Formato de fecha incorrecto. Use YYYY-MM-DD.")
+
+            while True:
+                try:
+                    plazo_meses = int(input("Ingrese el plazo en meses: "))
+                    if plazo_meses > 0:
+                        break
+                    else:
+                        print("El plazo debe ser un número mayor a cero.")
+                except ValueError:
+                    print("El plazo debe ser un número entero.")
+
+            while True:
+                try:
+                    porcentaje_avance = float(input("Ingrese el porcentaje de avance (0-100): "))
+                    if 0 <= porcentaje_avance <= 100:
+                        break
+                    else:
+                        print("El porcentaje debe estar entre 0 y 100.")
+                except ValueError:
+                    print("El porcentaje debe ser un número.")
+            
+            while True:
+                try:
+                    licitacion_anio = int(input("Ingrese el año de licitación: "))
+                    break
+                except ValueError:
+                    print("El año de licitación debe ser un número.")
+
+            imagen = input("Ingrese la URL de la imagen principal (opcional): ").strip()
+
+            while True:
+                try:
+                    mano_obra = int(input("Ingrese la cantidad de mano de obra: "))
+                    break
+                except ValueError:
+                    print("La mano de obra debe ser un número entero.")
+
+            esta_destacada = input("¿La obra es destacada? (s/n): ").strip().lower() == 's'
+            financiamiento = input("Ingrese la fuente de financiamiento: ").strip()
+
+            #Creación de la nueva instancia de Obra
+            nueva_obra = Obra(
+                entorno = nombre_entorno,
+                etapa = nombre_etapa,
+                tipo = nombre_tipo_obra,
+                contratacion_tipo = nombre_tipo_contratacion,
+                area_responsable = nombre_area_responsable,
+                direccion = nueva_direccion,
+                licitacion_oferta_empresa = nueva_empresa_contratista,
+                nombre = nombre,
+                descripcion = descripcion,
+                monto_contrato = monto_contrato,
+                fecha_inicio = fecha_inicio,
+                fecha_fin_inicial = fecha_fin_inicial,
+                plazo_meses = plazo_meses,
+                porcentaje_avance = porcentaje_avance,
+                licitacion_anio = licitacion_anio,
+                imagen_1 = imagen,
+                mano_obra = mano_obra,
+                destacada = esta_destacada,
+                financiamiento = financiamiento
+            )
+            nueva_obra.save()
+            print(f"Obra '{nueva_obra.nombre}' creada exitosamente.")
+
+        except Exception as e:
+            print("[ERROR] - No se pudo crear la nueva Obra: {e}")
 
 
     @classmethod
