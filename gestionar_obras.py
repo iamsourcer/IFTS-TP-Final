@@ -362,89 +362,289 @@ class GestionarObra(ABC):
 
         db.close()
 
-    @classmethod
+ @classmethod
     def nueva_obra(cls):
-     """ Crea una nueva instancia de Obra pidiendo los datos por teclado. Valida claves foráneas.
-         Persiste la instancia en la BD y la retorna. """
+        """Crea una nueva obra a partir de datos ingresados por teclado"""
+        print("\n--- CREACIÓN DE NUEVA OBRA ---")
+        try:
+            # Entorno
+            while True:
+                print("\nEntornos disponibles:")
+                for entorno in Entorno.select():
+                    print(f"- {entorno.nombre}")
+                entorno_nombre = input("Ingrese el entorno de la obra: ").strip()
+                entorno = Entorno.get_or_none(Entorno.nombre == entorno_nombre)
+                if entorno:
+                    break
+                print(f"Error: El entorno '{entorno_nombre}' no existe. Intente nuevamente.")
+            
+            # Etapa
+            while True:
+                print("\nEtapas disponibles:")
+                for etapa in Etapa.select():
+                    print(f"- {etapa.nombre}")
+                etapa_nombre = input("Ingrese la etapa de la obra: ").strip()
+                etapa = Etapa.get_or_none(Etapa.nombre == etapa_nombre)
+                if etapa:
+                    break
+                print(f"Error: La etapa '{etapa_nombre}' no existe. Intente nuevamente.")
+            
+            # Tipo de obra
+            while True:
+                print("\nTipos de obra disponibles:")
+                for tipo in TipoObra.select():
+                    print(f"- {tipo.nombre}")
+                tipo_nombre = input("Ingrese el tipo de obra: ").strip()
+                tipo = TipoObra.get_or_none(TipoObra.nombre == tipo_nombre)
+                if tipo:
+                    break
+                print(f"Error: El tipo de obra '{tipo_nombre}' no existe. Intente nuevamente.")
+            
+            # Área responsable
+            while True:
+                print("\nÁreas responsables disponibles:")
+                for area in AreaResponsable.select():
+                    print(f"- {area.nombre}")
+                area_nombre = input("Ingrese el área responsable: ").strip()
+                area = AreaResponsable.get_or_none(AreaResponsable.nombre == area_nombre)
+                if area:
+                    break
+                print(f"Error: El área responsable '{area_nombre}' no existe. Intente nuevamente.")
+                
+            # Tipo de contratación 
+            while True:
+                print("\nTipos de contratación disponibles:")
+                for contratacion in ContratacionTipo.select():
+                    print(f"- {contratacion.nombre}")
+                contratacion_nombre = input("Ingrese el tipo de contratación: ").strip()
+                contratacion_tipo = ContratacionTipo.get_or_none(ContratacionTipo.nombre == contratacion_nombre)
+                if contratacion_tipo:
+                    break
+                print(f"Error: El tipo de contratación '{contratacion_nombre}' no existe. Intente nuevamente.")
+            
+            # Comuna y Barrio
+            while True:
+                print("\nComunas disponibles:")
+                for comuna in Comuna.select():
+                    print(f"- {comuna.nombre}")
+                comuna_nombre = input("Ingrese la comuna: ").strip()
+                comuna = Comuna.get_or_none(Comuna.nombre == comuna_nombre)
+                if comuna:
+                    break
+                print(f"Error: La comuna '{comuna_nombre}' no existe. Intente nuevamente.")
+            
+            barrio_nombre = input("Ingrese el barrio: ").strip()
+            barrio, _ = Barrio.get_or_create(nombre=barrio_nombre, comuna=comuna)
+            
+            # Dirección
+            direccion_ubicacion = input("Ingrese la dirección: ").strip()
+            lat = input("Ingrese la latitud (opcional, presione Enter para omitir): ").strip()
+            lng = input("Ingrese la longitud (opcional, presione Enter para omitir): ").strip()
+            
+            try:
+                lat = float(lat) if lat else None
+                lng = float(lng) if lng else None
+            except ValueError:
+                print("Advertencia: Las coordenadas deben ser números. Se omitirán.")
+                lat = lng = None
+            
+            direccion, _ = Direccion.get_or_create(
+                ubicacion=direccion_ubicacion,
+                barrio=barrio,
+                lat=lat,
+                lng=lng
+            )
+            
+            # Contratista
+            print("\nDatos del contratista:")
+            nombre_empresa = input("Ingrese el nombre de la empresa contratista: ").strip()
+            cuit = input("Ingrese el CUIT del contratista: ").strip()
+            nro_contratacion = input("Ingrese el número de contratación: ").strip()
+            expediente_numero = input("Ingrese el número de expediente: ").strip()
+            
+            contratista, _ = Contratista.get_or_create(
+                nombre_empresa=nombre_empresa,
+                cuit_contratista=cuit,
+                nro_contratacion=nro_contratacion,
+                expediente_numero=expediente_numero
+            )
+            
+            # Datos principales de la obra
+            nombre = input("Ingrese el nombre de la obra: ").strip()
+            descripcion = input("Ingrese la descripción de la obra: ").strip()
+            
+            while True:
+                try:
+                    monto_contrato = float(input("Ingrese el monto del contrato: ").strip())
+                    break
+                except ValueError:
+                    print("Error: El monto debe ser un número. Intente nuevamente.")
+            
+            fecha_inicio = input("Ingrese la fecha de inicio (YYYY-MM-DD, opcional): ").strip()
+            fecha_fin = input("Ingrese la fecha de fin inicial (YYYY-MM-DD, opcional): ").strip()
+            
+            try:
+                fecha_inicio = datetime.strptime(fecha_inicio, "%Y-%m-%d").date() if fecha_inicio else None
+                fecha_fin = datetime.strptime(fecha_fin, "%Y-%m-%d").date() if fecha_fin else None
+            except ValueError:
+                print("Advertencia: Formato de fecha incorrecto. Se omitirán las fechas.")
+                fecha_inicio = fecha_fin = None
+            
+            while True:
+                try:
+                    plazo_meses = int(input("Ingrese el plazo en meses: ").strip())
+                    break
+                except ValueError:
+                    print("Error: El plazo debe ser un número entero. Intente nuevamente.")
+            
+            while True:
+                try:
+                    porcentaje_avance = float(input("Ingrese el porcentaje de avance (0-100): ").strip())
+                    if 0 <= porcentaje_avance <= 100:
+                        break
+                    print("Error: El porcentaje debe estar entre 0 y 100.")
+                except ValueError:
+                    print("Error: El porcentaje debe ser un número. Intente nuevamente.")
+            
+            while True:
+                try:
+                    licitacion_anio = int(input("Ingrese el año de licitación: ").strip())
+                    break
+                except ValueError:
+                    print("Error: El año debe ser un número entero. Intente nuevamente.")
+            
+            mano_obra = input("Ingrese la cantidad de mano de obra (opcional, presione Enter para omitir): ").strip()
+            mano_obra = int(mano_obra) if mano_obra else 0
+            
+            destacada = input("¿Es una obra destacada? (s/n): ").strip().lower()
+            destacada = True if destacada == 's' else False
+            
+            financiamiento = input("Ingrese el tipo de financiamiento (opcional): ").strip()
+            
+            # Crear la nueva obra
+            nueva_obra = Obra(
+                entorno=entorno,
+                etapa=etapa,
+                tipo=tipo,
+                contratacion_tipo=contratacion_tipo,
+                area_responsable=area,
+                direccion=direccion,
+                licitacion_oferta_empresa=contratista,
+                nombre=nombre,
+                descripcion=descripcion,
+                monto_contrato=monto_contrato,
+                fecha_inicio=fecha_inicio,
+                fecha_fin_inicial=fecha_fin,
+                plazo_meses=plazo_meses,
+                porcentaje_avance=porcentaje_avance,
+                licitacion_anio=licitacion_anio,
+                mano_obra=mano_obra,
+                destacada=destacada,
+                financiamiento=financiamiento,
+                imagen_1=None  # Puedes agregar lógica para manejar imágenes si es necesario
+            )
+            
+            # Persistir en la base de datos
+            nueva_obra.save()
+            
+            print("\n¡Nueva obra creada exitosamente!")
+            print(f"ID de la nueva obra: {nueva_obra.id}")
+            
+            return nueva_obra
+            
+        except Exception as e:
+            print(f"\n[ERROR] - No se pudo crear la nueva obra: {e}")
+            return None
+        finally:            
+            """Crea una nueva obra a partir de datos ingresados por teclado"""
+            print("\n--- CREACIÓN DE NUEVA OBRA ---")       
+            
+    @classmethod
+    def obtener_indicadores(cls):
+                    print("\n--- INFORMACION DE LAS OBRAS ---\n")
+
+                    try:
+                        print("== Listado de todas las áreas responsables ==")
+                        for area in AreaResponsable.select():
+                            print(f"  -{area.nombre}")
+                        
+                        print("\n== Listado de todos los tipos de obra ==")
+                        for tip in TipoObra.select():
+                            print(f"  -{tip.nombre}")
+
+                        print("\n== Listado de todos los tipos de obras ==")
+                        etapas = (Obra.select(Etapa.nombre, fn.COUNT(Obra.id).alias("cantidad"))
+                                .join(Etapa)
+                                .group_by(Etapa)
+                        )
+                        for eta in etapas:
+                            print(f"  -{eta.etapa.nombre}: {eta.cantidad} obras")
+                        
+                        print("\n== Obras y monto total por tipo de obra ==")
+                        tipos =(Obra.select(TipoObra.nombre, fn.COUNT(Obra.id).alias("cantidad"), fn.SUM(Obra.monto_contrato).alias("monto_total"))
+                                .join(TipoObra)
+                                .group_by(TipoObra)
+                        )
+                        for t in tipos:
+                            print(f"  - {t.tipo.nombre}: {t.cantidad} obras - Monto total: ${t.monto_total:,.2f}")
+                        
+                        print("\n== Barrios de comunas ==")
+                        barrios = (Barrio.select()
+                                .join(Comuna)
+                                .where(Comuna.nombre.in_(["1","2","3"]))
+                                .order_by(Barrio.nombre)
+                                )
+                        for b in barrios:
+                            print(f"  - {b.nombre} (Comuna {b.comuna.nombre})")
+
+                        print("\n== Obras finalizadas en plazo ≤ 24 meses ==")
+                        finalizadas = Obra.select().where(
+                        (Obra.etapa == Etapa.get(Etapa.nombre == "Finalizada")) &
+                        (Obra.plazo_meses <= 24)
+                        )
+                        print(f"  - Total: {finalizadas.count()} obras")
+
+                        print("\n== Monto total de inversion ==")
+                        monto_total = Obra.select(fn.SUM(Obra.monto_contrato)).scalar()
+                        print(f"  - ${monto_total:,.2f}")
+
+                    except Exception as e:
+                        print(f"[ERROR] - obtener_indicadores: {e}")
+                    
+                    db.close()
+                    pass
+                
+    @classmethod                                #Agrego un método para desconectar la base de datos
+    def desconectar_db(cls):
+                    #Cierra la conexión con la base de datos
+                    try:
+                        db.close()
+                    except Exception as e:
+                        print('\t[ERROR] - desconectando DB\n', e)
+
+
+    if __name__ == '__main__':
+        print('\t[DEBUG] - conectando DB')
+        GestionarObra.connect_db()
+        print('\t[DEBUG] - extrayendo datos (main)')
+        GestionarObra.extraer_datos()
+        print('\t[DEBUG] - mapeando a la DB')
+        GestionarObra.mapear_orm()
+        print('\t[DEBUG] - cargando datos')
+        GestionarObra.cargar_datos()
+        print('\t[DEBUG] - nueva obra')
+        GestionarObra.nueva_obra()
+        print('\t[DEBUG] - obtener indicadores')
+        GestionarObra.obtener_indicadores()
     
-    def get_fk(model, field_name):
-        while True:
-            valor = input(f"Ingrese {field_name}: ").strip()
-            instancia = model.select().where(model.nombre == valor).first()
-            if instancia:
-                return instancia
-            print(f"{field_name} '{valor}' no existe. Intente nuevamente.")
-
-   
-    nombre_obra = input("Ingrese nombre de la obra: ").strip()
-    descripcion_obra = input("Ingrese descripción: ").strip()
-    direccion = input("Ingrese dirección: ").strip()
-    licitacion_anio = int(input("Ingrese año de licitación: "))
-    monto_contrato = float(input("Ingrese monto del contrato: "))
-    fecha_inicio = input("Ingrese fecha de inicio (YYYY-MM-DD): ").strip()
-    fecha_fin_inicial = input("Ingrese fecha fin inicial (YYYY-MM-DD): ").strip()
-    plazo_meses = int(input("Ingrese plazo en meses: "))
-    porcentaje_avance = float(input("Ingrese porcentaje de avance: "))
-    imagen_1 = input("Ingrese nombre o URL de imagen 1: ").strip()
-    mano_obra = input("Ingrese mano de obra: ").strip()
-    destacada = input("¿Es destacada? (s/n): ").strip().lower() == 's'
-
     
-    entorno = get_fk(Entorno, "entorno")
-    etapa = get_fk(Etapa, "etapa")
-    tipo = get_fk(TipoObra, "tipo de obra")
-    contratacion_tipo = get_fk(ContratacionTipo, "tipo de contratación")
-    area_responsable = get_fk(AreaResponsable, "área responsable")
-    contratista = get_fk(Empresa, "empresa contratista")
-    financiamiento = get_fk(FuenteFinanciamiento, "fuente de financiamiento")
-
-    # Crea y guarda la obra con el returno de la función y el save
-    def nueva_obra(
-    entorno, etapa, tipo, contratacion_tipo, area_responsable, direccion,
-    contratista, nombre_obra, descripcion_obra, monto_contrato,
-    fecha_inicio, fecha_fin_inicial, plazo_meses, porcentaje_avance,
-    licitacion_anio, imagen_1, mano_obra, destacada, financiamiento
-):
-        obra = Obra(
-        entorno=entorno,
-        etapa=etapa,
-        tipo=tipo,
-        contratacion_tipo=contratacion_tipo,
-        area_responsable=area_responsable,
-        direccion=direccion,
-        licitacion_oferta_empresa=contratista,
-        nombre=nombre_obra,
-        descripcion=descripcion_obra,
-        monto_contrato=monto_contrato,
-        fecha_inicio=fecha_inicio,
-        fecha_fin_inicial=fecha_fin_inicial,
-        plazo_meses=plazo_meses,
-        porcentaje_avance=porcentaje_avance,
-        licitacion_anio=licitacion_anio,
-        imagen_1=imagen_1,
-        mano_obra=mano_obra,
-        destacada=destacada,
-        financiamiento=financiamiento
-    )
-        obra.save()
-        print("Obra creada con éxito.")
-        return obra
-
-
-@classmethod
-def obtener_indicadores(cls):
-    pass
-        
-
-if __name__ == '__main__':
-    print('\t[DEBUG] - conectando DB')
-    GestionarObra.connect_db()
-    print('\t[DEBUG] - extrayendo datos (main)')
-    GestionarObra.extraer_datos()
-    print('\t[DEBUG] - cargando datos')
-    GestionarObra.cargar_datos()
-    print('\t[DEBUG] - mapeando a la DB')
-    GestionarObra.mapear_orm()
-    print('\t[DEBUG] - creando nueva obra')
-    GestionarObra.nueva_obra()
-
+        # Obtener datos limpios
+        datos_limpios = GestionarObra.limpiar_datos()
+    
+        # Mostrar las primeras filas
+        # print("\nPrimeras 5 filas de datos limpios:")
+        # print(datos_limpios.head())
+    
+        # Mostrar información general del DataFrame
+        # print("\nInformación del DataFrame limpio:")
+        # print(datos_limpios.info())
