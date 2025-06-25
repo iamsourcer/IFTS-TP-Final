@@ -174,6 +174,17 @@ asignarle la Empresa (debe ser una empresa existente en la BD) y el nro_expedien
         self.etapa = Etapa.get(Etapa.nombre == "Rescindida")
         self.save()
 
+    from gestionar_obra import GestionarObra
+    # Crear al menos dos obras usando el método de clase
+    print("Cargar la primera obra:")
+    obra1 = GestionarObra.nueva_obra()
+
+    print("\nCargar la segunda obra:")
+    obra2 = GestionarObra.nueva_obra()
+
+    print("\nObras creadas:")
+    print(obra1)
+    print(obra2)
 
 
 
