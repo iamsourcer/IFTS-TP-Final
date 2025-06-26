@@ -104,7 +104,7 @@ class Obra(BaseModel):
         try:
             #busca o crea la nueva etapa "Proyecto"
             nueva_etapa_de_proyecto, created = Etapa.get_or_create(nombre = "Proyecto")
-            if (created):
+            if created:
                 print("Etapa 'Proyecto' creada exitosamente en la DB.")
 
             #validando que existan los registros en la DB
@@ -192,7 +192,7 @@ class Obra(BaseModel):
             self.financiamiento = nueva_fuente_financiamiento
 
             mano_de_obra = int(input("Ingrese la cantidad de mano de obra: ").strip()) 
-            if not mano_de_obra.isdigit() or int(mano_de_obra) < 0:
+            if mano_de_obra < 0:
                 raise ValueError("La mano de obra ingresada no puede ser negativa.")
             self.mano_obra = int(mano_de_obra)
 

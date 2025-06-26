@@ -52,9 +52,6 @@ class GestionarObra(ABC):
 
         #--------------------------- Limpieza de renglones repetidos ------------------
 
-        duplicados = obras[obras.duplicated(keep=False)]
-        print(duplicados)
-
         # Eliminar filas duplicadas, conservando solo la primera aparición
         obras = obras.drop_duplicates(keep='first')
 
@@ -216,6 +213,7 @@ class GestionarObra(ABC):
 
         return obras
 
+
     @classmethod
     def mapear_orm(cls):
 
@@ -276,7 +274,6 @@ class GestionarObra(ABC):
             comuna, _ = Comuna.get_or_create(nombre=comuna_name)
 
             # --- ADD THESE DEBUG PRINTS ---
-            print(f"DEBUG: Processing Comuna: '{comuna_name}'. Object: {comuna} (ID: {getattr(comuna, 'id', None)})")
             if comuna is None or not hasattr(comuna, 'id') or comuna.id is None:
                 raise ValueError(f"Comuna object is invalid before creating Barrio: {comuna_name}")
             # --- END DEBUG PRINTS ---
@@ -569,7 +566,7 @@ class GestionarObra(ABC):
             query_etapas = (Obra
                             .select(Etapa.nombre, fn.COUNT(Obra.id).alias('cantidad'))
                             .join(Etapa)
-                            .group_by(TipoObra))
+                            .group_by(Etapa))
             for row in query_etapas:
                 print(f" - {row.etapa.nombre} : {row.cantidad}")
 
@@ -598,31 +595,24 @@ class GestionarObra(ABC):
             etapa_finalizada = Etapa.get_or_none(nombre="Finalizada")
             if etapa_finalizada:
                 obras_finalizadas = Obra.select().where((Obra.etapa == etapa_finalizada) & (Obra.plazo_meses <= 24))
-                print(f" - Cantidad: {obras_finalizadas.COUNT()}")
+                print(f" - Cantidad: {obras_finalizadas.count()} obras")
             else: 
                 print("No hay etapa 'Finalizada' registrada.")
 
             #g. Monto total de inversión.
             print("\n g. Monto Total de Inversión: ")
             total_inversion = Obra.select(fn.SUM(Obra.monto_contrato)).scalar() or 0
-            print(f" - ${total_inversion:z,.2f}")
+            print(f" - ${total_inversion:,.2f}")
 
         except Exception as e:
             print(f"[Error] - al obtener los indicadores: {e}")
 
 
-    @classmethod                                #Agrego un método para desconectar la base de datos
-    def desconectar_db(cls):
-        try:
-            db.close()
-        except Exception as e:
-            print('\t[ERROR] - desconectando DB\n', e)
-
 
 if __name__ == '__main__':
     """ print('\t[DEBUG] - conectando DB')
-    GestionarObra.connect_db()
-    print('\t[DEBUG] - extrayendo datos (main)')
+    GestionarObra.connect_db() """
+    """ print('\t[DEBUG] - extrayendo datos (main)')
     GestionarObra.extraer_datos()
     print('\t[DEBUG] - mapeando a la DB')
     GestionarObra.mapear_orm()
@@ -630,7 +620,7 @@ if __name__ == '__main__':
     GestionarObra.cargar_datos() """
 
     #Se crean dos instancias de Obras y se hacen pasar por todos 
-    print('\n [INFO] - Creando la Primera Obra.')
+    """ print('\n [INFO] - Creando la Primera Obra.')
     obra1 = GestionarObra.nueva_obra()
     if obra1:
         print('\nAvanzando etapas de la Primera Obra: \n')
@@ -661,15 +651,21 @@ if __name__ == '__main__':
                 print('\n ------- FINALIZANDO LA OBRA -------')
                 obra1.finalizar_obra()
                 obra1.save()
+                break
             elif (opcion == 'r'):
                 print('\n ------- RESCINDIENDO LA OBRA -------')
                 obra1.rescindir_obra()
                 obra1.save()
+                break
             else:
-                print('Debe ingresar una opción válida.')
+                print('Debe ingresar una opción válida.') """
+
+    #Mostrar indicadores al finalizar
+    print('\n [INFO] - Mostrando Indicadores Finales.')
+    GestionarObra.obtener_indicadores()
 
     
-    print('\n [INFO] - Creando la Segunda Obra. \n')
+    """ print('\n [INFO] - Creando la Segunda Obra. \n')
     obra2 = GestionarObra.nueva_obra()
     if obra2:
         print('\nAvanzando etapas de la Primera Obra: ')
@@ -705,4 +701,4 @@ if __name__ == '__main__':
                 obra2.rescindir_obra()
                 obra2.save()
             else:
-                print('Debe ingresar una opción válida.')
+                print('Debe ingresar una opción válida.') """
