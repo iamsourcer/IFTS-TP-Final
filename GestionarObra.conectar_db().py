@@ -10,7 +10,6 @@ if __name__ == "__main__":
     GestionarObra.conectar_db()
     GestionarObra.mapear_orm()
 
-    # Crear al menos dos obras nuevas usando el método de clase
     print("\nCarga de primera obra:")
     obra1 = GestionarObra.nueva_obra()
     print("\nCarga de segunda obra:")
