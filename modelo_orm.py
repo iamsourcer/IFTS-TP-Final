@@ -106,8 +106,12 @@ class Obra(BaseModel):
             nueva_etapa_de_proyecto, created = Etapa.get_or_create(nombre = "Proyecto")
             if created:
                 print("Etapa 'Proyecto' creada exitosamente en la DB.")
-
-            #validando que existan los registros en la DB
+        except Exception as e:
+            print(f"[ERROR] - al crear/buscar la etapa 'Proyecto': {e}")
+            return False
+        
+        #validando que existan los registros en la DB
+        try:
             existe_tipo = TipoObra.get_or_none(id=self.tipo.id)
             existe_area = AreaResponsable.get_or_none(id=self.area_responsable.id)
             existe_barrio = Barrio.get_or_none(id=self.direccion.barrio.id)
@@ -117,8 +121,12 @@ class Obra(BaseModel):
                 raise ValueError("El área responsable no existe en la base de datos.")
             if not existe_barrio:
                 raise ValueError("El barrio no existe en la base de datos.")
+        except Exception as e:
+            print(f"[ERROR] - al validar los registros': {e}")
+            return False
 
-            #Asigno la etapa y guardo
+        #Asigno la etapa y guardo
+        try:
             self.etapa = nueva_etapa_de_proyecto
             self.save()
             print(f"Obra '{self.nombre}': Etapa iniciada como 'Proyecto'.")
@@ -133,19 +141,27 @@ class Obra(BaseModel):
             nuevo_tipo_contratacion = ContratacionTipo.get_or_none(nombre=iniciar_contratacion)
             if not nuevo_tipo_contratacion:
                 raise ValueError("El tipo de contratación ingresado no existe en la Base de Datos.")
-            
+        except Exception as e:
+            print(f"[ERROR] - al buscar el Tipo de Contratación': {e}")
+            return False
+        
+        try:
             nuevo_nro_contratacion = input("Ingrese el número de contratación: ").strip()
             if not nuevo_nro_contratacion:
                 raise ValueError("El número de contratación no puede estar vacío.")
+        except Exception as e:
+            print(f"[ERROR] - al ingresar número de contratación': {e}")
+            return False
             
+        try:
             self.contratacion_tipo = nuevo_tipo_contratacion
             self.licitacion_oferta_empresa.nro_contratacion = nuevo_nro_contratacion
             self.licitacion_oferta_empresa.save()
             self.save()
-            print(f"Contratación iniciada para la obra '{self.nombre}' con tipo de contratación: '{nuevo_tipo_contratacion.nombre}' y número de expediente: '{nuevo_nro_contratacion}'.")
+            print(f"Contratación iniciada para la obra '{self.nombre}' con tipo de contratación: '{nuevo_tipo_contratacion.nombre}' y número de contratación: '{nuevo_nro_contratacion}'.")
             return True
         except Exception as e:
-            print(f"[ERROR] - al iniciar la contratación para la obra '{self.nombre}': {e}")
+            print(f"[ERROR] - al guardar la contratación para la obra '{self.nombre}': {e}")
             return False
 
     def adjudicar_obra(self):
@@ -155,13 +171,17 @@ class Obra(BaseModel):
             nueva_empresa = Contratista.get_or_none(nombre_empresa=nuevo_nombre_empresa, cuit_contratista=nuevo_cuit_contratista)
             if not nueva_empresa:
                 raise ValueError("La empresa ingresada no existe en la Base de Datos.")
+        except Exception as e:
+            print(f"[ERROR] - al buscar la empresa adjudicataria': {e}")
+            return False
             
+        try:
             nuevo_numero_expediente = input("Ingrese el número del expediente: ").strip()
             if not nuevo_numero_expediente:
                 raise ValueError("El número del expediente no puede estar vacio.")
             
-            Contratista.expediente_numero = nuevo_numero_expediente
-            Contratista.save()
+            nueva_empresa.expediente_numero = nuevo_numero_expediente
+            nueva_empresa.save()
             
             self.licitacion_oferta_empresa = nueva_empresa
             self.save()
@@ -194,7 +214,7 @@ class Obra(BaseModel):
             mano_de_obra = int(input("Ingrese la cantidad de mano de obra: ").strip()) 
             if mano_de_obra < 0:
                 raise ValueError("La mano de obra ingresada no puede ser negativa.")
-            self.mano_obra = int(mano_de_obra)
+            self.mano_obra = mano_de_obra
 
             self.save()
             print(f"La obra '{self.nombre}' ha sido iniciada correctamente. ")
@@ -245,7 +265,7 @@ class Obra(BaseModel):
     def finalizar_obra(self):
         try:
             nueva_etapa_de_proyecto, created = Etapa.get_or_create(nombre = "Finalizada")
-            if (created):
+            if created:
                 print("Etapa 'Finalizada' creada exitosamente en la DB.")
             self.etapa = nueva_etapa_de_proyecto
             self.porcentaje_avance = 100

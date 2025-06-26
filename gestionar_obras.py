@@ -10,13 +10,22 @@ from unidecode import unidecode
 
 
 class GestionarObra(ABC):
+    db_connected = False
+    tablas_cargadas = False
+    datos_cargados = False
 
     @classmethod
     def connect_db(cls):
-        try:
-            db.connect()
-        except Exception as e:
-            print('\t[ERROR] - conectando DB\n', e)
+        if not cls.db_connected:
+            try:
+                if db.is_closed():
+                    db.connect()
+                cls.db_connected = True
+                print("\n[INFO] - Conexión a la DB exitosa.")
+            except Exception as e:
+                print('\t[ERROR] - conectando DB\n', e)
+        else:
+            print("\n[INFO] - La conexión a la DB ya está activa.")
 
 
     @classmethod
@@ -216,19 +225,14 @@ class GestionarObra(ABC):
 
     @classmethod
     def mapear_orm(cls):
+        cls.connect_db()
+        if not cls.tablas_cargadas:
+            try:
+                # Mensaje para saber que estamos en este paso
+                print("\t[DEBUG] - Intentando Mapear la base de datos...")
 
-        try:
-            cls.connect_db()
-            print('\t[DEBUG] - conectando db') 
-        except Exception as e:
-            print('\t[DEBUG] - Falla al conectar la DB')
-
-        try:
-            # Mensaje para saber que estamos en este paso
-            print("\t[DEBUG] - Intentando Mapear la base de datos...")
-
-            # La línea clave: le pasamos una lista con TODAS nuestras clases de modelo
-            db.create_tables([
+                # La línea clave: le pasamos una lista con TODAS nuestras clases de modelo
+                db.create_tables([
                 Entorno,
                 Etapa,
                 TipoObra,
@@ -240,124 +244,137 @@ class GestionarObra(ABC):
                 Direccion,
                 Obra  # La tabla principal al final, por buena costumbre
             ], safe=True)
-
-            db.close()
-
-        except Exception as e:
-            print('[ERROR] - mapear_orm -', e)
+                cls.tablas_cargadas = True
+                print("\n[INFO] - Tablas mapeadas correctamente.")
+            except Exception as e:
+                print('\t[ERROR] - al mapear ORM', e)
+        else:
+            print("\n[INFO] - Las tablas ya están mapeadas.")
 
 
     @classmethod
     def cargar_datos(cls):
+        cls.connect_db()
+        cls.mapear_orm()
 
-        datos_limpios = cls.limpiar_datos()
-
-        for index, row in datos_limpios.iterrows():
-            #Validaciones y valores por defecto
-            entorno_name = row['entorno'] if pd.notna(row['entorno']) and str(row['entorno']).strip().lower() != 'nan' else 'SIN ENTORNO'
-            etapa_name = row['etapa'] if pd.notna(row['etapa']) and str(row['etapa']).strip().lower() != 'nan' else 'SIN ETAPA'
-            tipo_name = row['tipo'] if pd.notna(row['tipo']) and str(row['tipo']).strip().lower() != 'nan' else 'SIN TIPO'
-            contratacion_tipo_name = row['contratacion_tipo'] if pd.notna(row['contratacion_tipo']) and str(row['contratacion_tipo']).strip().lower() != 'nan' else 'SIN CONTRATACION'
-            area_responsable_name = row['area_responsable'] if pd.notna(row['area_responsable']) and str(row['area_responsable']).strip().lower() != 'nan' else 'SIN AREA'
-            comuna_name = row['comuna'] if pd.notna(row['comuna']) and str(row['comuna']).strip().lower() != 'nan' else 0
-            barrio_name = row['barrio'] if pd.notna(row['barrio']) and str(row['barrio']).strip().lower() != 'nan' and row['barrio'].strip() != '' else 'sin barrio'
-            nombre_obra = row['nombre'] if pd.notna(row['nombre']) and str(row['nombre']).strip().lower() != 'nan' and row['nombre'].strip() != '' else 'SIN NOMBRE'
-            descripcion_obra = row['descripcion'] if pd.notna(row['descripcion']) and str(row['descripcion']).strip().lower() != 'nan' else ' '
-            direccion_obra = row['direccion'] if pd.notna(row['direccion']) and str(row['direccion']).strip().lower() != 'nan' else ' '
+        #Verifica si hay datos en la tabla principal
+        if not cls.datos_cargados:
+            if Obra.select().exists():
+                print("\n [INFO] - Los datos ya están cargados en la base. No se recargan.")
+                cls.datos_cargados = True
+                return
             
+            print("\n[INFO] - Cargando datos... ")
+            datos_limpios = cls.limpiar_datos()
 
-            entorno, _ = Entorno.get_or_create(nombre=entorno_name)
-            etapa, _ = Etapa.get_or_create(nombre=etapa_name)
-            tipo, _ = TipoObra.get_or_create(nombre=tipo_name)
-            contratacion_tipo, _ = ContratacionTipo.get_or_create(nombre=contratacion_tipo_name)
-            area_responsable, _ = AreaResponsable.get_or_create(nombre=area_responsable_name)
-            comuna, _ = Comuna.get_or_create(nombre=comuna_name)
+            for index, row in datos_limpios.iterrows():
+                #Validaciones y valores por defecto
+                entorno_name = row['entorno'] if pd.notna(row['entorno']) and str(row['entorno']).strip().lower() != 'nan' else 'SIN ENTORNO'
+                etapa_name = row['etapa'] if pd.notna(row['etapa']) and str(row['etapa']).strip().lower() != 'nan' else 'SIN ETAPA'
+                tipo_name = row['tipo'] if pd.notna(row['tipo']) and str(row['tipo']).strip().lower() != 'nan' else 'SIN TIPO'
+                contratacion_tipo_name = row['contratacion_tipo'] if pd.notna(row['contratacion_tipo']) and str(row['contratacion_tipo']).strip().lower() != 'nan' else 'SIN CONTRATACION'
+                area_responsable_name = row['area_responsable'] if pd.notna(row['area_responsable']) and str(row['area_responsable']).strip().lower() != 'nan' else 'SIN AREA'
+                comuna_name = row['comuna'] if pd.notna(row['comuna']) and str(row['comuna']).strip().lower() != 'nan' else 0
+                barrio_name = row['barrio'] if pd.notna(row['barrio']) and str(row['barrio']).strip().lower() != 'nan' and row['barrio'].strip() != '' else 'sin barrio'
+                nombre_obra = row['nombre'] if pd.notna(row['nombre']) and str(row['nombre']).strip().lower() != 'nan' and row['nombre'].strip() != '' else 'SIN NOMBRE'
+                descripcion_obra = row['descripcion'] if pd.notna(row['descripcion']) and str(row['descripcion']).strip().lower() != 'nan' else ' '
+                direccion_obra = row['direccion'] if pd.notna(row['direccion']) and str(row['direccion']).strip().lower() != 'nan' else ' '
+                
 
-            # --- ADD THESE DEBUG PRINTS ---
-            if comuna is None or not hasattr(comuna, 'id') or comuna.id is None:
-                raise ValueError(f"Comuna object is invalid before creating Barrio: {comuna_name}")
-            # --- END DEBUG PRINTS ---
+                entorno, _ = Entorno.get_or_create(nombre=entorno_name)
+                etapa, _ = Etapa.get_or_create(nombre=etapa_name)
+                tipo, _ = TipoObra.get_or_create(nombre=tipo_name)
+                contratacion_tipo, _ = ContratacionTipo.get_or_create(nombre=contratacion_tipo_name)
+                area_responsable, _ = AreaResponsable.get_or_create(nombre=area_responsable_name)
+                comuna, _ = Comuna.get_or_create(nombre=comuna_name)
 
-            barrio, _ = Barrio.get_or_create(nombre=row['barrio'], comuna=comuna)
+                # --- ADD THESE DEBUG PRINTS ---
+                if comuna is None or not hasattr(comuna, 'id') or comuna.id is None:
+                    raise ValueError(f"Comuna object is invalid before creating Barrio: {comuna_name}")
+                # --- END DEBUG PRINTS ---
 
-            contratista, _ = Contratista.get_or_create(
-                    nombre_empresa=row['licitacion_oferta_empresa'],
-                    cuit_contratista=row['cuit_contratista'],
-                    nro_contratacion=row['nro_contratacion'],
-                    expediente_numero=row['expediente-numero'])
-             
-            # --- MODIFIED DIRECCION HANDLING ---
-            lat_val = row['lat']
-            lng_val = row['lng']
+                barrio, _ = Barrio.get_or_create(nombre=row['barrio'], comuna=comuna)
 
-            # Convert pandas NaN to None, or handle other non-numeric strings
-            if pd.isna(lat_val): # Check for pandas NaN
-                lat_val = None
-            elif not isinstance(lat_val, (int, float)): # If it's not a number, try converting
+                contratista, _ = Contratista.get_or_create(
+                        nombre_empresa=row['licitacion_oferta_empresa'],
+                        cuit_contratista=row['cuit_contratista'],
+                        nro_contratacion=row['nro_contratacion'],
+                        expediente_numero=row['expediente-numero'])
+                
+                # --- MODIFIED DIRECCION HANDLING ---
+                lat_val = row['lat']
+                lng_val = row['lng']
+
+                # Convert pandas NaN to None, or handle other non-numeric strings
+                if pd.isna(lat_val): # Check for pandas NaN
+                    lat_val = None
+                elif not isinstance(lat_val, (int, float)): # If it's not a number, try converting
+                    try:
+                        lat_val = float(lat_val)
+                    except (ValueError, TypeError):
+                        lat_val = None # Set to None if conversion fails
+
+                if pd.isna(lng_val): # Check for pandas NaN
+                    lng_val = None
+                elif not isinstance(lng_val, (int, float)):
+                    try:
+                        lng_val = float(lng_val)
+                    except (ValueError, TypeError):
+                        lng_val = None # Set to None if conversion fails
+
+                direccion, _ = Direccion.get_or_create(ubicacion=row['direccion'],
+                                                    barrio=barrio,
+                                                    lat=lat_val,
+                                                    lng=lng_val)
+                
+                mano_obra = row['mano_obra']
+                if pd.isna(mano_obra):
+                    mano_obra = 0
+
+                monto_contrato = row['monto_contrato']
+                if pd.isna(monto_contrato):
+                    monto_contrato = 0
+
+                licitacion_anio = row['licitacion_anio']
+                if pd.isna(licitacion_anio):
+                    licitacion_anio = 0
+
+                fecha_inicio = row['fecha_inicio']
+                if pd.isna(fecha_inicio):
+                    fecha_inicio = None
+
+                fecha_fin_inicial = row['fecha_fin_inicial']
+                if pd.isna(fecha_fin_inicial):
+                    fecha_fin_inicial = None
+
                 try:
-                    lat_val = float(lat_val)
-                except (ValueError, TypeError):
-                    lat_val = None # Set to None if conversion fails
-
-            if pd.isna(lng_val): # Check for pandas NaN
-                lng_val = None
-            elif not isinstance(lng_val, (int, float)):
-                try:
-                    lng_val = float(lng_val)
-                except (ValueError, TypeError):
-                    lng_val = None # Set to None if conversion fails
-
-            direccion, _ = Direccion.get_or_create(ubicacion=row['direccion'],
-                                                barrio=barrio,
-                                                lat=lat_val,
-                                                lng=lng_val)
-            
-            mano_obra = row['mano_obra']
-            if pd.isna(mano_obra):
-                mano_obra = 0
-
-            monto_contrato = row['monto_contrato']
-            if pd.isna(monto_contrato):
-                monto_contrato = 0
-
-            licitacion_anio = row['licitacion_anio']
-            if pd.isna(licitacion_anio):
-                licitacion_anio = 0
-
-            fecha_inicio = row['fecha_inicio']
-            if pd.isna(fecha_inicio):
-                fecha_inicio = None
-
-            fecha_fin_inicial = row['fecha_fin_inicial']
-            if pd.isna(fecha_fin_inicial):
-                fecha_fin_inicial = None
-
-            try:
-                obra = Obra(
-                    entorno=entorno,
-                    etapa=etapa,
-                    tipo=tipo,
-                    contratacion_tipo=contratacion_tipo, 
-                    area_responsable=area_responsable,
-                    direccion=direccion, 
-                    licitacion_oferta_empresa=contratista, 
-                    nombre=nombre_obra,
-                    descripcion=descripcion_obra,
-                    monto_contrato=monto_contrato,
-                    fecha_inicio=fecha_inicio,
-                    fecha_fin_inicial=fecha_fin_inicial,
-                    plazo_meses=row['plazo_meses'],
-                    porcentaje_avance=row['porcentaje_avance'],
-                    licitacion_anio=licitacion_anio,
-                    imagen_1=row['imagen_1'],
-                    mano_obra=mano_obra,
-                    destacada=row['destacada'],
-                    financiamiento=row['financiamiento'])
-                obra.save()
-            except Exception as e:
-                print(f'[ERROR] - Error al grabar en db - {e}')
-
-        db.close()
+                    obra = Obra(
+                        entorno=entorno,
+                        etapa=etapa,
+                        tipo=tipo,
+                        contratacion_tipo=contratacion_tipo, 
+                        area_responsable=area_responsable,
+                        direccion=direccion, 
+                        licitacion_oferta_empresa=contratista, 
+                        nombre=nombre_obra,
+                        descripcion=descripcion_obra,
+                        monto_contrato=monto_contrato,
+                        fecha_inicio=fecha_inicio,
+                        fecha_fin_inicial=fecha_fin_inicial,
+                        plazo_meses=row['plazo_meses'],
+                        porcentaje_avance=row['porcentaje_avance'],
+                        licitacion_anio=licitacion_anio,
+                        imagen_1=row['imagen_1'],
+                        mano_obra=mano_obra,
+                        destacada=row['destacada'],
+                        financiamiento=row['financiamiento'])
+                    obra.save()
+                except Exception as e:
+                    print(f'[ERROR] - Error al grabar en db - {e}')
+            cls.datos_cargados = True
+            print("\n[INFO] - Datos cargados correctamente.")
+        else: 
+            print("n[INFO] - Los datos ya fueron cargados previamente.")
 
 
     @classmethod
@@ -610,95 +627,116 @@ class GestionarObra(ABC):
 
 
 if __name__ == '__main__':
-    """ print('\t[DEBUG] - conectando DB')
-    GestionarObra.connect_db() """
-    """ print('\t[DEBUG] - extrayendo datos (main)')
+    #Inicialización de la base de datos
+    #print('\t[DEBUG] - conectando DB')
+    GestionarObra.connect_db()
+
+    #print('\t[DEBUG] - extrayendo datos (main)')
     GestionarObra.extraer_datos()
-    print('\t[DEBUG] - mapeando a la DB')
+
+    #print('\t[DEBUG] - mapeando a la DB')
     GestionarObra.mapear_orm()
-    print('\t[DEBUG] - cargando datos')
-    GestionarObra.cargar_datos() """
 
-    #Se crean dos instancias de Obras y se hacen pasar por todos 
-    """ print('\n [INFO] - Creando la Primera Obra.')
-    obra1 = GestionarObra.nueva_obra()
-    if obra1:
-        print('\nAvanzando etapas de la Primera Obra: \n')
-        print('\n ------- INICIANDO NUEVO PROYECTO -------')
-        obra1.nuevo_proyecto()
-        obra1.save()
-        print('\n ------- INICIANDO CONTRATACIÓN -------')
-        obra1.iniciar_contratacion()
-        obra1.save()
-        print('\n ------- ADJUDICANDO OBRA -------')
-        obra1.adjudicar_obra()
-        obra1.save()
-        print('\n ------- INICIANDO OBRA -------')
-        obra1.iniciar_obra()
-        obra1.save()
-        print('\n ------- ACTUALIZANDO PORCENTAJE DE AVANCE -------')
-        obra1.actualizar_porcentaje_avance()
-        obra1.save()
-        print('\n ------- INCREMENTANDO PLAZO EN MESES -------')
-        obra1.incrementar_plazo()
-        obra1.save()
-        print('\n ------- INCREMENTANDO MANO DE OBRA -------')
-        obra1.incrementar_mano_obra()
-        obra1.save()
-        while True:
-            opcion = input('\n ¿Desea Finalizar o Rescindir la obra? (F / R): ').strip().lower()
-            if (opcion == 'f'):
-                print('\n ------- FINALIZANDO LA OBRA -------')
-                obra1.finalizar_obra()
-                obra1.save()
-                break
-            elif (opcion == 'r'):
-                print('\n ------- RESCINDIENDO LA OBRA -------')
-                obra1.rescindir_obra()
-                obra1.save()
-                break
-            else:
-                print('Debe ingresar una opción válida.') """
-
-    #Mostrar indicadores al finalizar
-    print('\n [INFO] - Mostrando Indicadores Finales.')
-    GestionarObra.obtener_indicadores()
-
+    #print('\t[DEBUG] - cargando datos')
+    GestionarObra.cargar_datos()
     
-    """ print('\n [INFO] - Creando la Segunda Obra. \n')
-    obra2 = GestionarObra.nueva_obra()
-    if obra2:
-        print('\nAvanzando etapas de la Primera Obra: ')
-        print('\n ------- INICIANDO NUEVO PROYECTO -------')
-        obra2.nuevo_proyecto()
-        obra2.save()
-        print('\n ------- INICIANDO CONTRATACIÓN -------')
-        obra2.iniciar_contratacion()
-        obra2.save()
-        print('\n ------- ADJUDICANDO OBRA -------')
-        obra2.adjudicar_obra()
-        obra2.save()
-        print('\n ------- INICIANDO OBRA -------')
-        obra2.iniciar_obra()
-        obra2.save()
-        print('\n ------- ACTUALIZANDO PORCENTAJE DE AVANCE -------')
-        obra2.actualizar_porcentaje_avance()
-        obra2.save()
-        print('\n ------- INCREMENTANDO PLAZO EN MESES -------')
-        obra2.incrementar_plazo()
-        obra2.save()
-        print('\n ------- INCREMENTANDO MANO DE OBRA -------')
-        obra2.incrementar_mano_obra()
-        obra2.save()
-        while True:
-            opcion = input('\n ¿Desea Finalizar o Rescindir la obra? (F / R): ').strip().lower()
-            if (opcion == 'f'):
-                print('\n ------- FINALIZANDO LA OBRA -------')
-                obra2.finalizar_obra()
-                obra2.save()
-            elif (opcion == 'r'):
-                print('\n ------- RESCINDIENDO LA OBRA -------')
-                obra2.rescindir_obra()
-                obra2.save()
-            else:
-                print('Debe ingresar una opción válida.') """
+    while True:
+        print("\n ---------- MENÚ DE OBRAS URBANAS ---------- ")
+        print("1. Crear nueva obra")
+        print("2. Avanzar etapas de una obra existente")
+        print("3. Mostrar indicadores")
+        print("4. Salir")
+        opcion = input("Seleccione una opción: ").strip()
+    
+        match opcion:
+            case '1':
+                cantidad_obras = 0
+                while True:
+                    obra = GestionarObra.nueva_obra()
+                    if obra:
+                        cantidad_obras += 1
+                        print(f"Obra '{obra.nombre}' creada. Puede avanzar etapas desde el menú")
+                    
+                    #Sale del menú si ya se cargaron al menos dos obras
+                    if cantidad_obras >= 2:
+                        salir = input("¿Desea cargar otra obra? (s/n): ").strip().lower()
+                        if salir == 'n':
+                            break
+                    else: 
+                        print("Debe cargar al menos 2 obras antes de salir de esta opción.")
+            case '2':
+                obra_id = input("Ingrese el ID de la obra a avanzar: ").strip()
+                try:
+                    obra = Obra.get_by_id(int(obra_id))
+                    print("\n ---------- DATOS DE LA OBRA SELECCIONADA ---------- \n")
+                    print(f"\nID: {obra.id}")
+                    print(f"Nombre: {obra.nombre}")
+                    print(f"Descripción: {obra.descripcion}")
+                    print(f"Entorno: {obra.entorno.nombre}")
+                    print(f"Etapa: {obra.etapa.nombre}")
+                    print(f"Tipo: {obra.tipo.nombre}")
+                    print(f"Contratación Tipo: {obra.contratacion_tipo.nombre}")
+                    print(f"Area Responsable: {obra.area_responsable.nombre}")
+                    print(f"Dirección: {obra.direccion.ubicacion}")
+                    print(f"Comuna: {obra.direccion.barrio.comuna}")
+                    print(f"Barrio: {obra.direccion.barrio.nombre}")
+                    print(f"Latitud: {obra.direccion.lat}")
+                    print(f"Longitud: {obra.direccion.lng}")
+                    print(f"Contratista: {obra.licitacion_oferta_empresa.nombre_empresa}")
+                    print(f"CUIT Contratista: {obra.licitacion_oferta_empresa.cuit_contratista}")
+                    print(f"Nro. Contratación: {obra.licitacion_oferta_empresa.nro_contratacion}")
+                    print(f"Nro. Expediente: {obra.licitacion_oferta_empresa.expediente_numero}")
+                    print(f"Monto Contrato: {obra.monto_contrato:,.2f}")
+                    print(f"Fecha Inicio: {obra.fecha_inicio}")
+                    print(f"Fecha Fin: {obra.fecha_fin_inicial}")
+                    print(f"Plazo (meses): {obra.plazo_meses}")
+                    print(f"Porcentaje de Avance: {obra.porcentaje_avance}")
+                    print(f"Año de Licitación: {obra.licitacion_anio}")
+                    print(f"Imagen: {obra.imagen_1}")
+                    print(f"Mano de Obra: {obra.mano_obra}")
+                    print(f"Destacada: {'Si' if obra.destacada else 'No'}")
+                    print(f"Financiamiento: {obra.financiamiento}")
+                    print(f"\n---------------------------------------------------------")
+
+                    print(f"\n ---------- AVANZANDO ETAPAS PARA LA OBRA: {obra.nombre} ----------")
+                    if obra.nuevo_proyecto():
+                        obra.save()
+                    if obra.iniciar_contratacion():
+                        obra.save()
+                    if obra.adjudicar_obra():
+                        obra.save()
+                    if obra.iniciar_obra():
+                        obra.save()
+                    if obra.actualizar_porcentaje_avance():
+                        obra.save()
+                    if obra.incrementar_plazo():
+                        obra.save()
+                    if obra.incrementar_mano_obra():
+                        obra.save()
+                    
+                    while True:
+                        opcion_final = input("\n¿Desea Finalizar o Rescindir la obra? (F/R): ").strip().lower()
+                        match opcion_final:
+                            case 'f':
+                                obra.finalizar_obra()
+                                obra.save()
+                                print("Obra Finalizada.")
+                                break
+                            case 'r':
+                                obra.rescindir_obra()
+                                obra.save()
+                                print("Obra Rescindida.")
+                                break
+                            case _:
+                                print("Debe ingresar una opción válida.")
+                except Exception as e:
+                    print(f"[ERROR] - No se pudo encontrar la obra: {e}")
+            case '3':
+                GestionarObra.obtener_indicadores()
+            case '4':
+                print("Saliendo del Sistema.")
+                if not db.is_closed():
+                    db.close()
+                break
+            case _:
+                print("Opción no válida. Intente nuevamente.")
