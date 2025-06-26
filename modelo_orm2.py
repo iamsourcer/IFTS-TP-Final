@@ -169,6 +169,70 @@ class Obra(BaseModel):
         self.etapa = Etapa.get_or_create(nombre="Rescindida")[0]
         self.save()
 
+        etapa, _ = Etapa.get_or_create(nombre="Proyecto")
+        tipo, _ = TipoObra.get_or_create(nombre="Vial")
+        tipo_contratacion, _ = ContratacionTipo.get_or_create(nombre="Licitación Pública")
+        empresa, _ = Empresa.get_or_create(nombre="Empresa Test")
+        area, _ = AreaResponsable.get_or_create(nombre="Infraestructura")
+        barrio, _ = Barrio.get_or_create(nombre="Centro", comuna=1)  # Ajusta comuna si es FK real
+        fuente, _ = FuenteFinanciamiento.get_or_create(nombre="Nacional")
+
+# 3. Crear una obra nueva (en estado "Proyecto")
+        obra = Obra.create(
+        etapa=etapa,
+        tipo=tipo,
+        tipo_contratacion=tipo_contratacion,
+        empresa=empresa,
+        area_responsable=area,
+        barrio=barrio,
+        nombre="Obra de Prueba",
+        descripcion="Una obra para testear el flujo.",
+        monto_contrato=1000000,
+        licitacion_anio=2025,
+        porcentaje_avance=0,
+        plazo_meses=18,
+        mano_obra=0,
+        destacada=False,
+        fecha_inicio=None,
+        fecha_fin_inicial=None,
+        fuente_financiamiento=fuente
+        )
+
+        print("Obra creada:", obra)
+
+# 4. Probar los métodos de instancia en orden lógico
+
+obra.nuevo_proyecto()
+print("Etapa tras nuevo_proyecto:", obra.etapa.nombre, obra.porcentaje_avance)
+
+obra.iniciar_contratacion(tipo_contratacion, 123)
+print("Etapa tras iniciar_contratacion:", obra.etapa.nombre, obra.tipo_contratacion.nombre, obra.nro_contratacion)
+
+obra.adjudicar_obra(empresa, "EXP-0001")
+print("Etapa tras adjudicar_obra:", obra.etapa.nombre, obra.empresa.nombre, obra.expediente_numero)
+
+obra.iniciar_obra(
+    destacada=True,
+    fecha_inicio=date.today(),
+    fecha_fin_inicial=date(2026, 7, 1),
+    fuente_financiamiento=fuente,
+    mano_obra=10
+)
+print("Etapa tras iniciar_obra:", obra.etapa.nombre, obra.destacada, obra.fecha_inicio, obra.fecha_fin_inicial, obra.fuente_financiamiento.nombre, obra.mano_obra)
+
+obra.actualizar_porcentaje_avance(45)
+print("Porcentaje avance tras actualizar:", obra.porcentaje_avance)
+
+obra.incrementar_plazo(2)
+print("Plazo meses tras incrementar:", obra.plazo_meses)
+
+obra.incrementar_mano_obra(5)
+print("Mano obra tras incrementar:", obra.mano_obra)
+
+obra.finalizar_obra()
+print("Etapa tras finalizar_obra:", obra.etapa.nombre, obra.porcentaje_avance, obra.finalizada)
+
+
 
 
 

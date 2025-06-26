@@ -15,7 +15,7 @@ import numpy as np
 # Clase abstracta que sirve como interfaz para gestionar obras urbanas.
 class GestionarObra(ABC):
 
-   @classmethod    
+    @classmethod    
     def connect_db(cls):
         # Intenta conectar a la base de datos usando Peewee ORM
         # Maneja posibles errores de conexión
