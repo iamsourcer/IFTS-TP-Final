@@ -1,13 +1,19 @@
-import pandas as pd
+# ABC y abstractmethod: Para crear una clase abstracta
 from abc import ABC, abstractmethod
-from modelos import (
-    db, Obra, Entorno, Etapa, TipoObra, ContratacionTipo, AreaResponsable,
-    Comuna, Barrio, Empresa, FuenteFinanciamiento
-)
-from peewee import IntegrityError
+# modelo_orm: Contiene los modelos de la base de datos
+from modelo_orm import *
+from datetime import datetime, date
+# unidecode: Para eliminar acentos y caracteres especiales
+from unidecode import unidecode
 
+# pandas, matplotlib, seaborn, numpy: Para manipulación y visualización de datos
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+import numpy as np
+
+# Clase abstracta que sirve como interfaz para gestionar obras urbanas.
 class GestionarObra(ABC):
-    dataframe = None
 
    @classmethod    
     def connect_db(cls):
