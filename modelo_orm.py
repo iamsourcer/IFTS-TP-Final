@@ -103,7 +103,7 @@ class Obra(BaseModel):
     def nuevo_proyecto(self):
         try:
             #busca o crea la nueva etapa "Proyecto"
-            nueva_etapa_de_proyecto, created = Etapa.get_or_create(nombre_etapa = "Proyecto")
+            nueva_etapa_de_proyecto, created = Etapa.get_or_create(nombre = "Proyecto")
             if (created):
                 print("Etapa 'Proyecto' creada exitosamente en la DB.")
 
@@ -130,7 +130,7 @@ class Obra(BaseModel):
     def iniciar_contratacion(self):
         try:
             iniciar_contratacion = input("Ingrese el nombre del tipo de contratación para la obra: ").strip()
-            nuevo_tipo_contratacion = ContratacionTipo.get_or_name(nombre=iniciar_contratacion)
+            nuevo_tipo_contratacion = ContratacionTipo.get_or_none(nombre=iniciar_contratacion)
             if not nuevo_tipo_contratacion:
                 raise ValueError("El tipo de contratación ingresado no existe en la Base de Datos.")
             
@@ -173,7 +173,7 @@ class Obra(BaseModel):
 
     def iniciar_obra(self):
         try:
-            nueva_destacada = input(f"¿Desea destacar la obra '{self.obra}'? (s/n): ").strip().lower()
+            nueva_destacada = input(f"¿Desea destacar la obra '{self.nombre}'? (s/n): ").strip().lower()
             if nueva_destacada == 's':
                 self.destacada = True
             else:
@@ -244,7 +244,7 @@ class Obra(BaseModel):
 
     def finalizar_obra(self):
         try:
-            nueva_etapa_de_proyecto, created = Etapa.get_or_create(nombre_etapa = "Finalizada")
+            nueva_etapa_de_proyecto, created = Etapa.get_or_create(nombre = "Finalizada")
             if (created):
                 print("Etapa 'Finalizada' creada exitosamente en la DB.")
             self.etapa = nueva_etapa_de_proyecto
@@ -258,7 +258,7 @@ class Obra(BaseModel):
 
     def rescindir_obra(self):
         try:
-            nueva_etapa_de_proyecto, created = Etapa.get_or_create(nombre_etapa = "Rescindida")
+            nueva_etapa_de_proyecto, created = Etapa.get_or_create(nombre = "Rescindida")
             if (created):
                 print("Etapa 'Rescindida' creada exitosamente en la DB.")
             self.etapa = nueva_etapa_de_proyecto

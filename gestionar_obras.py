@@ -408,6 +408,15 @@ class GestionarObra(ABC):
                 if comuna:
                     break
                 print("Comuna no encontrada. Intente nuevamente.")
+
+            barrios_validos = [barrio.nombre for barrio in Barrio.select().where(Barrio.comuna == comuna)]
+            if barrios_validos:
+                print(f"Barrios válidos para la comuna {comuna.nombre}:")
+                for barrios in barrios_validos:
+                    print(f" - {barrios}")
+            else:
+                print(f"No hay barrios registrados para la comuna {comuna.nombre}.")
+
             #Barrio
             while True:
                 nombre_barrio = input("Ingrese el nombre del barrio: ").strip()
@@ -416,21 +425,21 @@ class GestionarObra(ABC):
                     break
                 print("Barrio no encontrado para esa Comuna. Intente nuevamente.")
             #Direccion
-            direccion_ubicacion = input("Ingrese la dirección de la Obra:").strip()
+            direccion_ubicacion = input("Ingrese la dirección de la Obra: ").strip()
             direccion_latitud= input("Ingrese la latitud (opcional): ").strip()
             direccion_longitud = input("Ingrese la longitud (opcional): ").strip()
             direccion_latitud = float(direccion_latitud) if direccion_latitud else None
             direccion_longitud = float(direccion_longitud) if direccion_longitud else None
             nueva_direccion, _ = Direccion.get_or_create(
-                ubicación=direccion_ubicacion,
+                ubicacion=direccion_ubicacion,
                 barrio=barrio,
                 lat=direccion_latitud,
                 lng=direccion_longitud
             )
-            #licitacion_ofert_empresa
+            #licitacion_oferta_empresa
             while True:
                 nuevo_nombre_empresa = input("Ingrese el nombre de la Empresa Contratista: ").strip()
-                nro_cuit_contratista = input("Ingrese el CUIT de la Empresa Contratista:").strip()
+                nro_cuit_contratista = input("Ingrese el CUIT de la Empresa Contratista: ").strip()
                 nueva_empresa_contratista = Contratista.get_or_none(nombre_empresa=nuevo_nombre_empresa, cuit_contratista=nro_cuit_contratista)
                 if nueva_empresa_contratista:
                     break
@@ -509,13 +518,14 @@ class GestionarObra(ABC):
             esta_destacada = input("¿La obra es destacada? (s/n): ").strip().lower() == 's'
             financiamiento = input("Ingrese la fuente de financiamiento: ").strip()
 
-            #Creación de la nueva instancia de Obra
+            #Creación de la nueva instancia de Obra 
+            
             nueva_obra = Obra(
-                entorno = nombre_entorno,
-                etapa = nombre_etapa,
-                tipo = nombre_tipo_obra,
-                contratacion_tipo = nombre_tipo_contratacion,
-                area_responsable = nombre_area_responsable,
+                entorno = entorno,
+                etapa = etapa,
+                tipo = tipo,
+                contratacion_tipo = contratacion_tipo,
+                area_responsable = area_responsable,
                 direccion = nueva_direccion,
                 licitacion_oferta_empresa = nueva_empresa_contratista,
                 nombre = nombre,
@@ -533,14 +543,72 @@ class GestionarObra(ABC):
             )
             nueva_obra.save()
             print(f"Obra '{nueva_obra.nombre}' creada exitosamente.")
+            return nueva_obra
 
         except Exception as e:
-            print("[ERROR] - No se pudo crear la nueva Obra: {e}")
+            print(f"[ERROR] - No se pudo crear la nueva Obra: {e}")
+            return None
 
 
     @classmethod
     def obtener_indicadores(cls):
-        pass
+        print("\n ----------------- INDICADORES DE OBRAS URBANAS ----------------- \n")
+        try:
+            #a. Listado de todas las áreas responsables.
+            print("a. Áreas Responsables: ")
+            for area in AreaResponsable.select():
+                print(f" - {area.nombre}")
+
+            #b. Listado de todos los tipos de obra.
+            print("\n b. Tipos de Obra: ")
+            for tipo in TipoObra.select():
+                print(f" - {tipo.nombre}")
+            
+            #c. Cantidad de obras que se encuentran en cada etapa.
+            print("\n c. Cantidad de Obras por Etapa: ")
+            query_etapas = (Obra
+                            .select(Etapa.nombre, fn.COUNT(Obra.id).alias('cantidad'))
+                            .join(Etapa)
+                            .group_by(TipoObra))
+            for row in query_etapas:
+                print(f" - {row.etapa.nombre} : {row.cantidad}")
+
+            #d. Cantidad de obras y monto total de inversión por tipo de obra.
+            print("\n d. Cantidad de Obras y Monto Total de Inversión por Tipo de Obra: ")
+            query_tipo_obra_monto = (Obra
+                                     .select(TipoObra.nombre, fn.COUNT(Obra.id).alias('cantidad'), fn.SUM(Obra.monto_contrato).alias('total'))
+                                     .join(TipoObra)
+                                     .group_by(TipoObra))
+            for row in query_tipo_obra_monto:
+                print(f" - {row.tipo.nombre} : {row.cantidad} obras, ${row.total:,.2f} de inversión")
+
+
+            #e. Listado de todos los barrios pertenecientes a las comunas 1, 2 y 3.
+            print("\n e. Barrios de las Comunas 1, 2 y 3: ")
+            query_barrios = (Barrio
+                             .select()
+                             .join(Comuna)
+                             .where(Comuna.nombre.in_(['1', '2', '3'])))
+            for barrio in query_barrios:
+                print(f" - {barrio.nombre} (Comuna {barrio.comuna.nombre})")
+
+
+            #f. Cantidad de obras finalizadas en un plazo menor o igual a 24 meses.
+            print("\n f. Obras Finalizadas en un Plazo menor o igual a 24 Meses: ")
+            etapa_finalizada = Etapa.get_or_none(nombre="Finalizada")
+            if etapa_finalizada:
+                obras_finalizadas = Obra.select().where((Obra.etapa == etapa_finalizada) & (Obra.plazo_meses <= 24))
+                print(f" - Cantidad: {obras_finalizadas.COUNT()}")
+            else: 
+                print("No hay etapa 'Finalizada' registrada.")
+
+            #g. Monto total de inversión.
+            print("\n g. Monto Total de Inversión: ")
+            total_inversion = Obra.select(fn.SUM(Obra.monto_contrato)).scalar() or 0
+            print(f" - ${total_inversion:z,.2f}")
+
+        except Exception as e:
+            print(f"[Error] - al obtener los indicadores: {e}")
 
 
     @classmethod                                #Agrego un método para desconectar la base de datos
@@ -552,11 +620,89 @@ class GestionarObra(ABC):
 
 
 if __name__ == '__main__':
-    print('\t[DEBUG] - conectando DB')
+    """ print('\t[DEBUG] - conectando DB')
     GestionarObra.connect_db()
     print('\t[DEBUG] - extrayendo datos (main)')
     GestionarObra.extraer_datos()
     print('\t[DEBUG] - mapeando a la DB')
     GestionarObra.mapear_orm()
     print('\t[DEBUG] - cargando datos')
-    GestionarObra.cargar_datos()
+    GestionarObra.cargar_datos() """
+
+    #Se crean dos instancias de Obras y se hacen pasar por todos 
+    print('\n [INFO] - Creando la Primera Obra.')
+    obra1 = GestionarObra.nueva_obra()
+    if obra1:
+        print('\nAvanzando etapas de la Primera Obra: \n')
+        print('\n ------- INICIANDO NUEVO PROYECTO -------')
+        obra1.nuevo_proyecto()
+        obra1.save()
+        print('\n ------- INICIANDO CONTRATACIÓN -------')
+        obra1.iniciar_contratacion()
+        obra1.save()
+        print('\n ------- ADJUDICANDO OBRA -------')
+        obra1.adjudicar_obra()
+        obra1.save()
+        print('\n ------- INICIANDO OBRA -------')
+        obra1.iniciar_obra()
+        obra1.save()
+        print('\n ------- ACTUALIZANDO PORCENTAJE DE AVANCE -------')
+        obra1.actualizar_porcentaje_avance()
+        obra1.save()
+        print('\n ------- INCREMENTANDO PLAZO EN MESES -------')
+        obra1.incrementar_plazo()
+        obra1.save()
+        print('\n ------- INCREMENTANDO MANO DE OBRA -------')
+        obra1.incrementar_mano_obra()
+        obra1.save()
+        while True:
+            opcion = input('\n ¿Desea Finalizar o Rescindir la obra? (F / R): ').strip().lower()
+            if (opcion == 'f'):
+                print('\n ------- FINALIZANDO LA OBRA -------')
+                obra1.finalizar_obra()
+                obra1.save()
+            elif (opcion == 'r'):
+                print('\n ------- RESCINDIENDO LA OBRA -------')
+                obra1.rescindir_obra()
+                obra1.save()
+            else:
+                print('Debe ingresar una opción válida.')
+
+    
+    print('\n [INFO] - Creando la Segunda Obra. \n')
+    obra2 = GestionarObra.nueva_obra()
+    if obra2:
+        print('\nAvanzando etapas de la Primera Obra: ')
+        print('\n ------- INICIANDO NUEVO PROYECTO -------')
+        obra2.nuevo_proyecto()
+        obra2.save()
+        print('\n ------- INICIANDO CONTRATACIÓN -------')
+        obra2.iniciar_contratacion()
+        obra2.save()
+        print('\n ------- ADJUDICANDO OBRA -------')
+        obra2.adjudicar_obra()
+        obra2.save()
+        print('\n ------- INICIANDO OBRA -------')
+        obra2.iniciar_obra()
+        obra2.save()
+        print('\n ------- ACTUALIZANDO PORCENTAJE DE AVANCE -------')
+        obra2.actualizar_porcentaje_avance()
+        obra2.save()
+        print('\n ------- INCREMENTANDO PLAZO EN MESES -------')
+        obra2.incrementar_plazo()
+        obra2.save()
+        print('\n ------- INCREMENTANDO MANO DE OBRA -------')
+        obra2.incrementar_mano_obra()
+        obra2.save()
+        while True:
+            opcion = input('\n ¿Desea Finalizar o Rescindir la obra? (F / R): ').strip().lower()
+            if (opcion == 'f'):
+                print('\n ------- FINALIZANDO LA OBRA -------')
+                obra2.finalizar_obra()
+                obra2.save()
+            elif (opcion == 'r'):
+                print('\n ------- RESCINDIENDO LA OBRA -------')
+                obra2.rescindir_obra()
+                obra2.save()
+            else:
+                print('Debe ingresar una opción válida.')
